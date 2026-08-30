@@ -117,7 +117,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 
 <script>
 const KEY='isp_sales_crm_v1';
-const APP_BUILD='v15.34 · 2026-08-30 · Nomes de empresas, oportunidades e cards agora são clicáveis em todo o CRM (Oportunidades, Pipeline, Propostas e Dashboard), abrindo a ficha com telefone/WhatsApp e dados do negócio';
+const APP_BUILD='v15.35 · 2026-08-30 · Ficha da Oportunidade (Pipeline) agora traz também todos os dados da empresa e a lista completa de contatos vinculados, com WhatsApp/ligar direto';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const origins=['Captação de lead','Indicação','Parceiro','Carteira'];
 const defaultData={
@@ -980,10 +980,15 @@ function showDealDetails(id){
  const d=data.deals.find(x=>x.id===id);
  if(!d)return;
  const company=data.companies.find(x=>x.name===d.company);
- const contact=data.contacts.find(x=>x.company===d.company);
- const cel=contact?.cel||'',tel=contact?.tel||company?.phone||'';
+ const contacts=data.contacts.filter(x=>x.company===d.company);
+ const mainContact=contacts[0];
+ const cel=mainContact?.cel||'',tel=mainContact?.tel||company?.phone||'';
  document.getElementById('dealDetailTitle').textContent=d.title;
  const field=(label,value)=>`<div class="field"><label>${label}</label><div style="padding:8px 0;font-weight:600">${value?esc(value):'<span style=\"color:#8a94a3;font-weight:400\">Não informado</span>'}</div></div>`;
+ const contactsRows=contacts.length?contacts.map(c=>`<div class="list-row" style="align-items:center;flex-wrap:wrap;gap:8px">
+    <div class="row-main" style="min-width:0"><b>${esc(c.name)}</b><small>${esc(c.role||'')}${c.cel?' • 📱 '+esc(c.cel):''}${c.tel?' • ☎️ '+esc(c.tel):''}${c.email?' • ✉ '+esc(c.email):''}</small></div>
+    <div style="display:flex;gap:4px;flex-shrink:0">${c.cel?whatsappBtn(c.cel,null,d.company,c.name):''} ${c.cel?callBtn(c.cel,'📞','Ligar celular',d.company):''} ${c.tel?callBtn(c.tel,'☎️','Ligar fixo',d.company):''}</div>
+   </div>`).join(''):'<div style="padding:10px;color:#8a94a3;font-size:13px">Nenhum contato vinculado a esta empresa ainda.</div>';
  document.getElementById('dealDetailBody').innerHTML=`<div class="form-grid">
    <div class="field"><label>Empresa</label><div style="padding:8px 0;font-weight:600"><a href="#" onclick="event.preventDefault();closeDealDetails();showCompanyDetailsByName('${String(d.company).replace(/'/g,"’")}')" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(d.company)}</a></div></div>
    ${field('Valor',money(d.value))}
@@ -991,9 +996,19 @@ function showDealDetails(id){
    ${field('Probabilidade',d.prob+'%')}
    ${field('Prioridade',d.priority)}
    ${field('Próximo passo',d.next)}
-   ${field('Contato principal',contact?contact.name:'')}
  </div>
- <div style="display:flex;gap:6px;margin-top:6px">${whatsappBtn(cel,null,d.company,contact?.name)} ${callBtn(cel,'📞','Ligar celular',d.company)} ${callBtn(tel,'☎️','Ligar fixo',d.company)}</div>`;
+ ${company?`<div class="form-grid" style="margin-top:10px;border-top:1px solid var(--line);padding-top:14px">
+   ${field('CNPJ',company.cnpj)}
+   ${field('Cidade',company.city)}
+   ${field('Telefone',company.phone)}
+   ${field('Endereço',company.address)}
+   ${field('E-mail',company.email)}
+   ${field('Segmento',company.segment)}
+   ${field('Status',company.status)}
+   ${field('Origem',company.origin)}
+ </div>`:''}
+ <div style="display:flex;gap:6px;margin:10px 0">${whatsappBtn(cel,null,d.company,mainContact?.name)} ${callBtn(cel,'📞','Ligar celular',d.company)} ${callBtn(tel,'☎️','Ligar fixo',d.company)}</div>
+ <div class="card panel" style="margin-top:6px"><div class="panel-head"><h3>Contatos vinculados</h3></div>${contactsRows}</div>`;
  document.getElementById('dealDetailEditBtn').onclick=()=>{closeDealDetails();editItem('deal',id)};
  document.getElementById('dealDetailModal').classList.add('open');
 }
@@ -1955,6 +1970,5 @@ if(data._k2Stats){setTimeout(()=>{const s=data._k2Stats;toast(`Carteira K2: ${s.
 </style>
 </body>
 </html>
-
 
   
