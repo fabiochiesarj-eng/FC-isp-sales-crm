@@ -6,6 +6,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ISP Sales CRM</title>
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -117,7 +120,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 
 <script>
 const KEY='isp_sales_crm_v1';
-const APP_BUILD='v15.36 · 2026-08-30 · Cards e listas de Relatórios agora são clicáveis (Pipeline, Receita fechada, Oportunidades, Ticket médio, Conversão por etapa, Performance por empresa), abrindo os detalhes por trás de cada número; nomes de empresa em qualquer detalhamento do Dashboard também viraram links';
+const APP_BUILD='v15.37 · 2026-08-30 · Favicon/ícone do app atualizado para o novo logo (aba do navegador e tela inicial) + tudo da v15.36 (Relatórios clicáveis)';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const origins=['Captação de lead','Indicação','Parceiro','Carteira'];
 const defaultData={
