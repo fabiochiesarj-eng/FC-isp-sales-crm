@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#060b16"/>
+      <stop offset="100%" stop-color="#0f2b52"/>
+    </linearGradient>
+    <linearGradient id="gold2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff9d2e"/>
+      <stop offset="100%" stop-color="#ffe08a"/>
+    </linearGradient>
+    <filter id="glow2" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <g transform="translate(10,10) scale(0.39)">
+    <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bg2)"/>
+    <circle cx="96" cy="394" r="60" fill="none" stroke="#3b82f6" stroke-width="2" opacity="0.18"/>
+    <circle cx="96" cy="394" r="100" fill="none" stroke="#3b82f6" stroke-width="2" opacity="0.1"/>
+    <polyline points="96,394 166,326 226,352 296,246 356,272 422,150" fill="none" stroke="url(#gold2)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow2)"/>
+    <circle cx="96" cy="394" r="10" fill="#ffe08a"/>
+    <circle cx="166" cy="326" r="10" fill="#ffe08a"/>
+    <circle cx="226" cy="352" r="10" fill="#ffe08a"/>
+    <circle cx="296" cy="246" r="10" fill="#ffe08a"/>
+    <circle cx="356" cy="272" r="10" fill="#ffe08a"/>
+    <polygon points="455,88 448,139 417,122" fill="url(#gold2)" filter="url(#glow2)"/>
+  </g>
+
+  <text x="225" y="103" font-family="Arial, Segoe UI, sans-serif" font-size="58" font-weight="800" fill="#0d1b2a">ISP</text>
+  <text x="345" y="103" font-family="Arial, Segoe UI, sans-serif" font-size="58" font-weight="800" fill="#1769e0">SALES</text>
+  <text x="225" y="150" font-family="Arial, Segoe UI, sans-serif" font-size="32" font-weight="600" fill="#6b7280" letter-spacing="6">CRM</text>
+</svg>
