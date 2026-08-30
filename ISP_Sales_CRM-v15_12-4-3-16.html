@@ -117,7 +117,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 
 <script>
 const KEY='isp_sales_crm_v1';
-const APP_BUILD='v15.35 · 2026-08-30 · Ficha da Oportunidade (Pipeline) agora traz também todos os dados da empresa e a lista completa de contatos vinculados, com WhatsApp/ligar direto';
+const APP_BUILD='v15.36 · 2026-08-30 · Cards e listas de Relatórios agora são clicáveis (Pipeline, Receita fechada, Oportunidades, Ticket médio, Conversão por etapa, Performance por empresa), abrindo os detalhes por trás de cada número; nomes de empresa em qualquer detalhamento do Dashboard também viraram links';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const origins=['Captação de lead','Indicação','Parceiro','Carteira'];
 const defaultData={
@@ -1310,7 +1310,7 @@ function renderReports(){
   label=label.charAt(0).toUpperCase()+label.slice(1);
   return `<option value="${val}" ${i===0?'selected':''}>${label}</option>`;
  }).join('');
- document.getElementById('relatorios').innerHTML=`<div class="page-head"><div><h1>Relatórios</h1><p>Indicadores para acompanhamento da operação comercial</p></div><button class="btn" onclick="window.print()">🖨 Imprimir</button></div><div class="grid stat-grid">${reportCard('Pipeline',money(pipe))}${reportCard('Receita fechada',money(close))}${reportCard('Oportunidades',data.deals.length)}${reportCard('Ticket médio',money(avg))}</div><div class="grid two" style="margin-top:14px"><div class="card panel"><div class="panel-head"><h3>Conversão por etapa</h3></div>${stages.map((s,i)=>`<div class="list-row"><span>${s}</span><div class="bar" style="width:45%"><i style="width:${Math.max(8,100-i*13)}%"></i></div><b>${Math.max(3,100-i*13)}%</b></div>`).join('')}</div><div class="card panel"><div class="panel-head"><h3>Performance por empresa</h3></div>${[...data.deals].sort((a,b)=>b.value-a.value).slice(0,7).map(d=>`<div class="list-row"><span>${esc(d.company)}</span><b>${money(d.value)}</b></div>`).join('')}</div></div><div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>📞 Empresas contatadas por semana</h3></div><p style="margin:0 0 12px;color:#667085;font-size:13px">Conta empresas distintas contatadas por semana e o meio usado (telefone ou WhatsApp), a partir de tarefas de Ligação/WhatsApp concluídas e de cliques em ligar/WhatsApp no CRM.</p><div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn small primary" id="btnModeMonth" onclick="toggleReportMode('month')">Por mês</button><button class="btn small" id="btnModeCustom" onclick="toggleReportMode('custom')">Período personalizado</button></div><div id="reportModeMonth" style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><label style="font-size:13px;color:#667085">Mês:</label><select id="reportMonthSelect" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px">${monthOptions}</select></div><div id="reportModeCustom" style="display:none;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap"><label style="font-size:13px;color:#667085">De:</label><input type="date" id="reportStartDate" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px"><label style="font-size:13px;color:#667085">Até:</label><input type="date" id="reportEndDate" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px"></div><button class="btn primary" onclick="generateContactReport()">Gerar relatório</button><div id="contactReportResults" style="margin-top:14px"></div></div>`;
+ document.getElementById('relatorios').innerHTML=`<div class="page-head"><div><h1>Relatórios</h1><p>Indicadores para acompanhamento da operação comercial</p></div><button class="btn" onclick="window.print()">🖨 Imprimir</button></div><div class="grid stat-grid">${reportCard('Pipeline',money(pipe),"openDashboardDetails('pipeline')")}${reportCard('Receita fechada',money(close),"openDashboardDetails('closed')")}${reportCard('Oportunidades',data.deals.length,"openDashboardDetails('allDeals')")}${reportCard('Ticket médio',money(avg),"openDashboardDetails('allDeals')")}</div><div class="grid two" style="margin-top:14px"><div class="card panel"><div class="panel-head"><h3>Conversão por etapa</h3></div>${stages.map((s,i)=>`<div class="list-row" style="cursor:pointer" onclick="openDashboardDetails('${esc(s)}')" title="Ver oportunidades nesta etapa"><span>${s}</span><div class="bar" style="width:45%"><i style="width:${Math.max(8,100-i*13)}%"></i></div><b>${Math.max(3,100-i*13)}%</b></div>`).join('')}</div><div class="card panel"><div class="panel-head"><h3>Performance por empresa</h3></div>${[...data.deals].sort((a,b)=>b.value-a.value).slice(0,7).map(d=>`<div class="list-row" style="cursor:pointer" onclick="showDealDetails(${d.id})" title="Ver detalhes da oportunidade"><span>${esc(d.company)}</span><b>${money(d.value)}</b></div>`).join('')}</div></div><div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>📞 Empresas contatadas por semana</h3></div><p style="margin:0 0 12px;color:#667085;font-size:13px">Conta empresas distintas contatadas por semana e o meio usado (telefone ou WhatsApp), a partir de tarefas de Ligação/WhatsApp concluídas e de cliques em ligar/WhatsApp no CRM.</p><div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn small primary" id="btnModeMonth" onclick="toggleReportMode('month')">Por mês</button><button class="btn small" id="btnModeCustom" onclick="toggleReportMode('custom')">Período personalizado</button></div><div id="reportModeMonth" style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><label style="font-size:13px;color:#667085">Mês:</label><select id="reportMonthSelect" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px">${monthOptions}</select></div><div id="reportModeCustom" style="display:none;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap"><label style="font-size:13px;color:#667085">De:</label><input type="date" id="reportStartDate" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px"><label style="font-size:13px;color:#667085">Até:</label><input type="date" id="reportEndDate" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px"></div><button class="btn primary" onclick="generateContactReport()">Gerar relatório</button><div id="contactReportResults" style="margin-top:14px"></div></div>`;
 }
 function reportCard(a,b,action){return `<div class="card report-card" ${action?`onclick="${action}" style="cursor:pointer" title="Clique para ver os detalhes"`:''}><h3>${a}</h3><div class="big">${b}</div><small style="color:#6b7280">Atualizado agora</small></div>`}
 function mapsSearchLink(name,city){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+', '+city+' - RJ')}
@@ -1595,6 +1595,33 @@ function openDashboardDetails(type){
       )}).join('')}` : emptyDetail('Nenhuma proposta vencida.');
   }
 
+  else if(type==='allDeals'){
+    items=[...data.deals].sort((a,b)=>b.value-a.value);
+    heading='Todas as oportunidades';
+    destination='oportunidades';
+    body.innerHTML = items.length ? `
+      <p style="margin-top:0;color:#667085">Todas as oportunidades cadastradas, da maior para a menor.</p>
+      ${items.map(d=>detailItem(
+        d.stage,
+        d.company,
+        d.title,
+        `<b>${money(d.value)}</b> <span class="tag ${d.prob>=60?'green':d.prob>=40?'orange':''}">${d.prob}%</span>`
+      )).join('')}` : emptyDetail('Nenhuma oportunidade cadastrada ainda.');
+  }
+  else if(stages.includes(type)){
+    items=data.deals.filter(d=>d.stage===type).sort((a,b)=>b.value-a.value);
+    heading='Oportunidades em "'+type+'"';
+    destination='pipeline';
+    body.innerHTML = items.length ? `
+      <p style="margin-top:0;color:#667085">Oportunidades atualmente nesta etapa do funil.</p>
+      ${items.map(d=>detailItem(
+        d.stage,
+        d.company,
+        d.title,
+        `<b>${money(d.value)}</b> <span class="tag ${d.prob>=60?'green':d.prob>=40?'orange':''}">${d.prob}%</span>`
+      )).join('')}` : emptyDetail('Nenhuma oportunidade nesta etapa.');
+  }
+
   title.textContent=heading;
   action.onclick=()=>{closeDashboardDetails();showPage(destination)};
   modal.classList.add('open');
@@ -1602,7 +1629,7 @@ function openDashboardDetails(type){
 function detailItem(left,company,description,right){
   return `<div class="list-row">
     <div style="min-width:70px;font-size:12px;font-weight:700">${esc(left)}</div>
-    <div class="row-main"><b>${esc(company)}</b><small>${esc(description)}</small></div>
+    <div class="row-main"><b><a href="#" onclick="event.preventDefault();closeDashboardDetails();showCompanyDetailsByName('${String(company).replace(/'/g,"’")}')" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(company)}</a></b><small>${esc(description)}</small></div>
     <div style="text-align:right">${right}</div>
   </div>`;
 }
@@ -1970,5 +1997,4 @@ if(data._k2Stats){setTimeout(()=>{const s=data._k2Stats;toast(`Carteira K2: ${s.
 </style>
 </body>
 </html>
-
   
