@@ -17,9 +17,9 @@
 button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:flex;min-height:100vh}
 .sidebar{width:240px;background:linear-gradient(180deg,#0b192a,#0e1d30);color:#fff;position:fixed;left:0;top:0;bottom:0;z-index:20;display:flex;flex-direction:column}
 .brand{height:82px;display:flex;align-items:center;gap:10px;padding:0 22px;border-bottom:1px solid rgba(255,255,255,.08);font-weight:800;font-size:18px}.brand .antenna{font-size:32px;color:#65a7ff}.brand span{color:#fff}.brand b{color:#3b82f6}
-.nav{padding:14px 10px;overflow:auto;flex:1}.nav button{width:100%;border:0;background:none;color:#dbe6f5;padding:12px 14px;border-radius:8px;text-align:left;display:flex;align-items:center;gap:12px;margin:2px 0}.nav button:hover{background:rgba(255,255,255,.07)}.nav button.active{background:linear-gradient(90deg,#164ea7,#1f5fbe);color:#fff}.nav .ico{width:22px;text-align:center}.side-user{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;gap:10px;align-items:center}.avatar{width:38px;height:38px;border-radius:50%;background:#1d5fbf;display:grid;place-items:center;color:white;font-weight:700}.side-user small{color:#aab9cc}
+.nav{padding:14px 10px;overflow:auto;flex:1}.nav-section{padding:14px 14px 6px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5d7ba0}.nav button{width:100%;border:0;background:none;color:#dbe6f5;padding:12px 14px;border-radius:8px;text-align:left;display:flex;align-items:center;gap:12px;margin:2px 0}.nav button:hover{background:rgba(255,255,255,.07)}.nav button.active{background:linear-gradient(90deg,#164ea7,#1f5fbe);color:#fff}.nav .ico{width:22px;text-align:center}.side-user{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;gap:10px;align-items:center}.avatar{width:38px;height:38px;border-radius:50%;background:#1d5fbf;display:grid;place-items:center;color:white;font-weight:700}.side-user small{color:#aab9cc}
 .main{margin-left:240px;width:calc(100% - 240px);min-width:0}.topbar{height:82px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:18px;padding:0 28px;position:sticky;top:0;z-index:10}.hamb{font-size:22px;border:0;background:none;color:#4b5563}.title{font-size:19px;font-weight:700;white-space:nowrap}.search{margin-left:30px;max-width:470px;flex:1;position:relative}.search input{width:100%;border:1px solid var(--line);border-radius:8px;padding:11px 14px 11px 40px;background:#fbfcfe;outline:none}.search span{position:absolute;left:14px;top:9px;color:#7b8490}.top-actions{margin-left:auto;display:flex;align-items:center;gap:14px}.icon-btn{border:0;background:none;font-size:20px;color:#4b5563;position:relative}.badge-dot{position:absolute;right:-3px;top:-4px;background:#dc2626;color:#fff;font-size:9px;border-radius:10px;padding:2px 5px}.profile{display:flex;align-items:center;gap:9px;padding-left:10px;border-left:1px solid var(--line)}.profile small{display:block;color:var(--muted)}
-.content{padding:24px 18px 40px;max-width:1600px;margin:auto}.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.page-head h1{margin:0;font-size:24px}.page-head p{margin:5px 0 0;color:var(--muted)}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:10px 14px;color:#263342;font-weight:600;text-decoration:none;display:inline-block}.btn:hover{box-shadow:var(--shadow)}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.btn.success{background:var(--green);color:#fff;border-color:var(--green)}.btn.danger{background:#fff;color:var(--red);border-color:#fecaca}.btn.small{padding:7px 10px;font-size:12px}.datebox{border:1px solid var(--line);background:#fff;border-radius:8px;padding:10px 13px;color:#334155}
+.content{padding:24px 18px 90px;max-width:1600px;margin:auto}.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.page-head h1{margin:0;font-size:24px}.page-purpose{font-size:11.5px;font-weight:600;color:#5b8def;background:#eef5ff;border-radius:20px;padding:4px 10px;vertical-align:middle;margin-left:8px;white-space:nowrap}.page-head p{margin:5px 0 0;color:var(--muted)}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:10px 14px;color:#263342;font-weight:600;text-decoration:none;display:inline-block}.btn:hover{box-shadow:var(--shadow)}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.btn.success{background:var(--green);color:#fff;border-color:var(--green)}.btn.danger{background:#fff;color:var(--red);border-color:#fecaca}.btn.small{padding:7px 10px;font-size:12px}.datebox{border:1px solid var(--line);background:#fff;border-radius:8px;padding:10px 13px;color:#334155}
 
 .grid{display:grid;gap:14px}.kpis{grid-template-columns:repeat(5,minmax(160px,1fr));margin-bottom:14px}.card{background:var(--card);border:1px solid #edf0f4;border-radius:var(--radius);box-shadow:var(--shadow)}.kpi{padding:17px;min-height:120px;position:relative}.kpi .circle{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:20px;color:#fff;float:left;margin-right:12px}.c-blue{background:#397edb}.c-green{background:#28a653}.c-purple{background:#8b5cf6}.c-orange{background:#f3a712}.c-red{background:#e23b3b}.kpi .label{font-size:12px;text-transform:uppercase;color:#525c67}.kpi .value{font-size:21px;font-weight:750;margin-top:6px}.kpi .sub{font-size:12px;color:var(--muted);margin-top:8px}.kpi:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(15,23,42,.12);border-color:#d8e5f7}.kpi{transition:.15s ease}.up{color:var(--green)!important}.progress{height:7px;background:#e8edf3;border-radius:10px;margin-top:8px;overflow:hidden}.progress i{display:block;height:100%;background:#28a653;border-radius:10px}
 .two{grid-template-columns:1fr 1fr}.three{grid-template-columns:1.1fr 1fr 1.2fr}.bottom{grid-template-columns:1fr 1fr 1.25fr}.panel{padding:15px}.panel-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #edf0f4;padding-bottom:12px;margin-bottom:7px}.panel-head h3{margin:0;font-size:15px}.link{color:#2b67ad;font-size:12px;cursor:pointer}.bars .row{display:grid;grid-template-columns:115px 1fr 90px;align-items:center;gap:8px;padding:6px 0;font-size:12px}.bar{height:14px;background:#eaf0f7;border-radius:3px;overflow:hidden}.bar i{height:100%;display:block;background:#397edb}.bar.green i{background:#25a34a}.list-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 2px;border-bottom:1px solid #f0f2f5}.list-row:last-child{border-bottom:0}.time{font-weight:700;width:45px;font-size:12px}.row-main{flex:1;min-width:0}.row-main b{display:block;font-size:13px}.row-main small{color:var(--muted)}.row-icon{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#eef5ff}.tag{font-size:11px;padding:5px 8px;border-radius:6px;background:#eef5ff;color:#2863a6;white-space:nowrap}.tag.green{background:#e8f7ed;color:#17813a}.tag.orange{background:#fff5df;color:#a86b00}.tag.red{background:#feecec;color:#b91c1c}.tag.gray{background:#f0f2f5;color:#59636f}.ftxt-green{color:#17813a}.ftxt-orange{color:#a86b00}.ftxt-red{color:#b91c1c}.ftxt-gray{color:#59636f}
@@ -31,29 +31,33 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}.field.full{grid-column:1/-1}.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}.modal.open{display:flex}.modal-box{width:min(720px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:15px;box-shadow:0 25px 80px rgba(0,0,0,.25)}.modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.modal-body{padding:20px}.modal-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
 .toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:12px 16px;border-radius:9px;box-shadow:0 10px 30px #0003;display:none;z-index:200}.toast.show{display:block}
 .stat-grid{grid-template-columns:repeat(4,1fr)}.report-card{padding:18px}.report-card h3{margin:0 0 8px}.big{font-size:27px;font-weight:800}.settings{max-width:800px}.switch{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
-@media(max-width:1100px){.sidebar{width:72px}.brand{padding:0 15px}.brand span,.brand b,.nav button span,.side-user .who{display:none}.nav button{justify-content:center}.main{margin-left:72px;width:calc(100% - 72px)}.kpis{grid-template-columns:repeat(3,1fr)}.three,.bottom{grid-template-columns:1fr 1fr}.pipeline{grid-template-columns:repeat(9,190px)}}
-@media(max-width:760px){.sidebar{display:none}.sidebar.mobile-open{display:flex;width:240px;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.4)}.sidebar.mobile-open .brand span,.sidebar.mobile-open .brand b,.sidebar.mobile-open .nav button span,.sidebar.mobile-open .side-user .who{display:inline}.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:40}.sidebar-backdrop.show{display:block}.main{margin-left:0;width:100%}.topbar{padding:0 12px;height:68px}.search{margin-left:5px}.search input{padding-left:35px}.profile .who{display:none}.content{padding:14px 10px 30px}.kpis,.two,.three,.bottom,.stat-grid{grid-template-columns:1fr}.kpi{min-height:100px}.page-head{align-items:flex-start;gap:10px;flex-direction:column}.calendar{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+@media(max-width:1100px){.sidebar{width:72px}.brand{padding:0 15px}.brand span,.brand b,.nav button span,.nav-section,.side-user .who{display:none}.nav button{justify-content:center}.main{margin-left:72px;width:calc(100% - 72px)}.kpis{grid-template-columns:repeat(3,1fr)}.three,.bottom{grid-template-columns:1fr 1fr}.pipeline{grid-template-columns:repeat(9,190px)}}
+@media(max-width:760px){.sidebar{display:none}.sidebar.mobile-open{display:flex;width:240px;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.4)}.sidebar.mobile-open .brand span,.sidebar.mobile-open .brand b,.sidebar.mobile-open .nav button span,.sidebar.mobile-open .side-user .who{display:inline}.sidebar.mobile-open .nav-section{display:block}.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:40}.sidebar-backdrop.show{display:block}.main{margin-left:0;width:100%}.topbar{padding:0 12px;height:68px}.search{margin-left:5px}.search input{padding-left:35px}.profile .who{display:none}.content{padding:14px 10px 90px}.kpis,.two,.three,.bottom,.stat-grid{grid-template-columns:1fr}.kpi{min-height:100px}.page-head{align-items:flex-start;gap:10px;flex-direction:column}.calendar{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
 </style>
 </head>
 <body>
 <div class="app">
 <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 <aside class="sidebar">
-  <div class="brand"><span class="antenna">♟</span><span><b>ISP</b> SALES CRM<small style="display:block;font-size:9.5px;font-weight:400;opacity:.6;letter-spacing:.02em" id="buildBadge"></small></span></div>
+  <div class="brand"><span class="antenna">📶</span><span><b>ISP</b> SALES CRM<small style="display:block;font-size:9.5px;font-weight:400;opacity:.6;letter-spacing:.02em" id="buildBadge"></small></span></div>
   <nav class="nav" id="nav">
-    <button data-page="dashboard" class="active"><i class="ico">◉</i><span>Dashboard</span></button>
-    <button data-page="empresas"><i class="ico">▦</i><span>Empresas</span></button>
-    <button data-page="contatos"><i class="ico">♙</i><span>Contatos</span></button>
-    <button data-page="oportunidades"><i class="ico">♧</i><span>Oportunidades</span></button>
-    <button data-page="pipeline"><i class="ico">◫</i><span>Pipeline</span></button>
-    <button data-page="agenda"><i class="ico">□</i><span>Agenda</span></button>
-    <button data-page="tarefas"><i class="ico">☑</i><span>Tarefas</span></button>
-    <button data-page="propostas"><i class="ico">▤</i><span>Propostas</span></button>
-    <button data-page="produtos"><i class="ico">✣</i><span>Produtos</span></button>
-    <button data-page="relatorios"><i class="ico">▥</i><span>Relatórios</span></button>
-    <button data-page="mapa"><i class="ico">⌖</i><span>Mapa de Prospecção</span></button>
-    <button data-page="inteligencia"><i class="ico">☼</i><span>Inteligência Comercial</span></button>
-    <button data-page="config"><i class="ico">⚙</i><span>Configurações</span></button>
+    <button data-page="dashboard" class="active"><i class="ico">🏠</i><span>Dashboard</span></button>
+    <div class="nav-section">Vendas</div>
+    <button data-page="empresas"><i class="ico">🏢</i><span>Empresas</span></button>
+    <button data-page="contatos"><i class="ico">👤</i><span>Contatos</span></button>
+    <button data-page="oportunidades"><i class="ico">💼</i><span>Oportunidades</span></button>
+    <button data-page="pipeline"><i class="ico">📊</i><span>Pipeline</span></button>
+    <div class="nav-section">Operação</div>
+    <button data-page="agenda"><i class="ico">📅</i><span>Agenda</span></button>
+    <button data-page="tarefas"><i class="ico">✅</i><span>Tarefas</span></button>
+    <button data-page="propostas"><i class="ico">📄</i><span>Propostas</span></button>
+    <button data-page="produtos"><i class="ico">📦</i><span>Produtos</span></button>
+    <div class="nav-section">Inteligência</div>
+    <button data-page="relatorios"><i class="ico">📈</i><span>Relatórios</span></button>
+    <button data-page="mapa"><i class="ico">🗺️</i><span>Mapa de Prospecção</span></button>
+    <button data-page="inteligencia"><i class="ico">🧠</i><span>Inteligência Comercial</span></button>
+    <div class="nav-section">Sistema</div>
+    <button data-page="config"><i class="ico">⚙️</i><span>Configurações</span></button>
   </nav>
   <div class="side-user"><div class="avatar">FC</div><div class="who"><b>Fábio Chiesa</b><small>Gerente de Contas</small></div></div>
 </aside>
@@ -62,7 +66,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 <header class="topbar">
   <button class="hamb" onclick="toggleSidebar()">☰</button><div class="title" id="topTitle">Dashboard</div>
   <div class="search"><span>⌕</span><input id="globalSearch" placeholder="Buscar empresas, contatos, oportunidades..." oninput="globalSearch(this.value)" autocomplete="off"></div>
-  <div class="top-actions"><button class="icon-btn" onclick="showPage('tarefas')">♧<em class="badge-dot" id="notifyCount">5</em></button><button class="icon-btn" onclick="showPage('agenda')">□</button><button class="icon-btn" onclick="showPage('config')">?</button><div class="profile"><div class="avatar">FC</div><div class="who"><b>Fábio Chiesa</b><small>Gerente de Contas</small></div></div></div>
+  <div class="top-actions"><button class="icon-btn" onclick="showPage('tarefas')">✅<em class="badge-dot" id="notifyCount">5</em></button><button class="icon-btn" onclick="showPage('agenda')">📅</button><button class="icon-btn" onclick="showPage('config')">?</button><div class="profile"><div class="avatar">FC</div><div class="who"><b>Fábio Chiesa</b><small>Gerente de Contas</small></div></div></div>
 </header>
 
 <div class="content">
@@ -111,9 +115,9 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 </div>
 <div class="modal" id="confirmModal"><div class="modal-box" style="max-width:380px"><div class="modal-body" style="text-align:center;padding:30px 22px 10px"><div style="font-size:34px;margin-bottom:12px">⚠️</div><p id="confirmMessage" style="margin:0;font-weight:700;font-size:15px"></p></div><div class="modal-foot"><button class="btn" onclick="closeConfirm()">Cancelar</button><button class="btn danger" id="confirmOkBtn">Excluir</button></div></div></div>
 <div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><b id="modalTitle">Novo registro</b><button class="icon-btn" onclick="closeModal()">✕</button></div><div class="modal-body" id="modalBody"></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="modalSave">Salvar</button></div></div></div>
-<div class="modal" id="companyDetailModal"><div class="modal-box"><div class="modal-head"><b id="companyDetailTitle">Detalhes da empresa</b><button class="icon-btn" onclick="closeCompanyDetails()">✕</button></div><div class="modal-body" id="companyDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeCompanyDetails()">Fechar</button><button class="btn" id="companyDetailTaskBtn">📅 Tarefa</button><button class="btn" id="companyDetailProposalBtn">📄 Proposta</button><button class="btn" id="companyDetailDealBtn">💼 Oportunidade</button><button class="btn primary" id="companyDetailEditBtn">Editar</button></div></div></div>
-<div class="modal" id="taskDetailModal"><div class="modal-box"><div class="modal-head"><b id="taskDetailTitle">Detalhes da tarefa</b><button class="icon-btn" onclick="closeTaskDetails()">✕</button></div><div class="modal-body" id="taskDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeTaskDetails()">Fechar</button><button class="btn" id="taskDetailConvertBtn" style="display:none">💼 Converter em Oportunidade</button><button class="btn primary" id="taskDetailEditBtn">Editar</button></div></div></div>
-<div class="modal" id="dealDetailModal"><div class="modal-box"><div class="modal-head"><b id="dealDetailTitle">Oportunidade</b><button class="icon-btn" onclick="closeDealDetails()">✕</button></div><div class="modal-body" id="dealDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeDealDetails()">Fechar</button><button class="btn primary" id="dealDetailEditBtn">Editar</button></div></div></div>
+<div class="modal" id="companyDetailModal"><div class="modal-box"><div class="modal-head"><b id="companyDetailTitle">Detalhes da empresa</b><button class="icon-btn" onclick="closeCompanyDetails()">✕</button></div><div class="modal-body" id="companyDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeCompanyDetails()">Fechar</button><button class="btn" id="companyDetailTaskBtn">📅 Tarefa</button><button class="btn" id="companyDetailProposalBtn">📄 Proposta</button><button class="btn" id="companyDetailDealBtn">💼 Oportunidade</button><button class="btn danger" id="companyDetailDeleteBtn">🗑 Excluir</button><button class="btn primary" id="companyDetailEditBtn">Editar</button></div></div></div>
+<div class="modal" id="taskDetailModal"><div class="modal-box"><div class="modal-head"><b id="taskDetailTitle">Detalhes da tarefa</b><button class="icon-btn" onclick="closeTaskDetails()">✕</button></div><div class="modal-body" id="taskDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeTaskDetails()">Fechar</button><button class="btn" id="taskDetailConvertBtn" style="display:none">💼 Converter em Oportunidade</button><button class="btn danger" id="taskDetailDeleteBtn">🗑 Excluir</button><button class="btn primary" id="taskDetailEditBtn">Editar</button></div></div></div>
+<div class="modal" id="dealDetailModal"><div class="modal-box"><div class="modal-head"><b id="dealDetailTitle">Oportunidade</b><button class="icon-btn" onclick="closeDealDetails()">✕</button></div><div class="modal-body" id="dealDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeDealDetails()">Fechar</button><button class="btn danger" id="dealDetailDeleteBtn">🗑 Excluir</button><button class="btn primary" id="dealDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="contactDetailModal"><div class="modal-box"><div class="modal-head"><b id="contactDetailTitle">Contato</b><button class="icon-btn" onclick="closeContactDetails()">✕</button></div><div class="modal-body" id="contactDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeContactDetails()">Fechar</button><button class="btn danger" id="contactDetailDeleteBtn">Excluir</button><button class="btn primary" id="contactDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="quickLogModal"><div class="modal-box"><div class="modal-head"><b>Registrar contato feito fora do CRM</b><button class="icon-btn" onclick="closeQuickLog()">✕</button></div><div class="modal-body"><input id="quickLogSearch" placeholder="Buscar empresa..." oninput="renderQuickLogList(this.value)" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;margin-bottom:10px;box-sizing:border-box"><div id="quickLogList"></div></div><div class="modal-foot"><button class="btn" onclick="closeQuickLog()">Fechar</button></div></div></div>
 <div class="modal" id="contactOutcomeModal"><div class="modal-box" style="max-width:380px"><div class="modal-head"><b id="contactOutcomeTitle">Motivo</b><button class="icon-btn" onclick="closeContactOutcomeModal()">✕</button></div><div class="modal-body" id="contactOutcomeBody"></div></div></div>
@@ -121,7 +125,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 
 <script>
 const KEY='isp_sales_crm_v1';
-const APP_BUILD='v15.52 · 2026-08-30 · Clicar e segurar pra rolar (arrastar o mouse) agora funciona também em Empresas, Contatos, Oportunidades, Tarefas e Propostas, além do Pipeline; e o Pipeline ganhou a coluna "❌ Perdido" depois de "Fechado" (arrastar uma oportunidade pra lá zera a probabilidade automaticamente) — Oportunidades também ganhou o grupo "Perdidas", e oportunidades perdidas não entram mais nos cálculos de pipeline em aberto/meta/alto valor';
+const APP_BUILD='v15.57 · 2026-08-30 · Novo campo "Observação comercial" no formulário de Oportunidade (Nova/Editar), visível também na ficha da oportunidade';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -842,6 +846,18 @@ function deleteContactHistory(id){
 const PRODUTIVO_REASONS=['Mensagem WhatsApp enviada','Ligação atendida','Envio de e-mail'];
 const IMPRODUTIVO_REASONS=['Mensagem de WhatsApp não respondida','Ligação não atendida','E-mail não respondido'];
 let _contactOutcomeCallback=null;
+function quickSetOutcome(id,outcome,callback){
+ const entry=(data.contactHistory||[]).find(h=>h.id===id);
+ if(!entry)return;
+ if(entry.outcome===outcome){openContactOutcomeMenu(id,outcome,callback);return}
+ entry.outcome=outcome;
+ entry.reason=outcome==='produtivo'
+  ?(entry.channel==='whatsapp'?'Mensagem WhatsApp enviada':entry.channel==='telefone'?'Ligação atendida':'Envio de e-mail')
+  :(entry.channel==='whatsapp'?'Mensagem de WhatsApp não respondida':entry.channel==='telefone'?'Ligação não atendida':'E-mail não respondido');
+ save();
+ renderPipeline();
+ if(callback)callback();
+}
 function openContactOutcomeMenu(id,outcome,callback){
  _contactOutcomeCallback=callback||null;
  const reasons=outcome==='produtivo'?PRODUTIVO_REASONS:IMPRODUTIVO_REASONS;
@@ -867,8 +883,8 @@ function dealContactLine(companyName){
  return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #f0f2f5;display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11px">
    <span style="color:#59636f">${icon} ${fmtDateBR(new Date(last.date+'T00:00:00'))} ${last.time}</span>
    <span style="display:flex;gap:3px">
-     <button onclick="event.stopPropagation();openContactOutcomeMenu(${last.id},'produtivo')" title="${last.outcome==='produtivo'&&last.reason?esc(last.reason):'Marcar como produtivo'}" style="border:1px solid ${last.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${last.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${last.outcome==='produtivo'?'#17813a':'#8a94a3'};border-radius:6px;padding:2px 6px;font-size:11px;cursor:pointer">✅</button>
-     <button onclick="event.stopPropagation();openContactOutcomeMenu(${last.id},'improdutivo')" title="${last.outcome==='improdutivo'&&last.reason?esc(last.reason):'Marcar como improdutivo'}" style="border:1px solid ${last.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${last.outcome==='improdutivo'?'#feecec':'#fff'};color:${last.outcome==='improdutivo'?'#b91c1c':'#8a94a3'};border-radius:6px;padding:2px 6px;font-size:11px;cursor:pointer">❌</button>
+     <button onclick="event.stopPropagation();quickSetOutcome(${last.id},'produtivo')" title="${last.outcome==='produtivo'&&last.reason?esc(last.reason)+' (toque para trocar o motivo)':'Toque para marcar como produtivo'}" style="border:1px solid ${last.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${last.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${last.outcome==='produtivo'?'#17813a':'#8a94a3'};border-radius:6px;padding:2px 6px;font-size:11px;cursor:pointer">✅</button>
+     <button onclick="event.stopPropagation();quickSetOutcome(${last.id},'improdutivo')" title="${last.outcome==='improdutivo'&&last.reason?esc(last.reason)+' (toque para trocar o motivo)':'Toque para marcar como improdutivo'}" style="border:1px solid ${last.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${last.outcome==='improdutivo'?'#feecec':'#fff'};color:${last.outcome==='improdutivo'?'#b91c1c':'#8a94a3'};border-radius:6px;padding:2px 6px;font-size:11px;cursor:pointer">❌</button>
    </span>
   </div>`;
 }
@@ -934,7 +950,7 @@ function showPage(page){
 }
 document.addEventListener('click',e=>{if(!e.target.closest('#globalResults')&&!e.target.matches('.global-search'))document.getElementById('globalResults')?.classList.remove('show')});
 document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-page]');if(b){showPage(b.dataset.page);closeSidebar()}});
-function renderAll(){const active=document.querySelector('.section.active')?.id||'dashboard';renderDashboard();renderPage(active);updateNotifyBadge()}
+function renderAll(){const active=document.querySelector('.section.active')?.id||'dashboard';renderPage(active);updateNotifyBadge()}
 function updateNotifyBadge(){
  const el=document.getElementById('notifyCount');if(!el)return;
  const overdueTasks=data.tasks.filter(t=>t.date<today()&&t.status!=='Concluída').length;
@@ -956,11 +972,11 @@ function renderDashboard(){
  const max=Math.max(...stageVals.map(x=>x.v),1);
  const top=[...data.deals].sort((a,b)=>b.value-a.value).slice(0,5);
  document.getElementById('dashboard').innerHTML=`
- <div class="page-head"><div><h1>Dashboard</h1><p>Visão geral da sua operação comercial</p></div><div class="actions"><div class="datebox">01/08/2026 - 31/08/2026　□</div><button class="btn primary" onclick="openForm('deal')">＋ Nova oportunidade</button></div></div>
+ <div class="page-head"><div><h1>Dashboard <span class="page-purpose">📍 seu dia a dia agora</span></h1><p>Visão geral da sua operação comercial</p></div><div class="actions"><div class="datebox">01/08/2026 - 31/08/2026　□</div><button class="btn primary" onclick="openForm('deal')">＋ Nova oportunidade</button></div></div>
  <div class="grid kpis">
   ${kpi('💲','PIPELINE TOTAL',money(pipeline),'↑ 18% vs mês anterior','c-blue',undefined,"openDashboardDetails('pipeline')")}
   ${kpi('🎯','META DO MÊS',money(target),Math.round(closed/target*100)+'% da meta atingida','c-green',Math.min(100,closed/target*100),"openDashboardDetails('meta')")}
-  ${kpi('▥','RECEITA FECHADA',money(closed),'↑ 12% vs mês anterior','c-purple',undefined,"openDashboardDetails('closed')")}
+  ${kpi('💰','RECEITA FECHADA',money(closed),'↑ 12% vs mês anterior','c-purple',undefined,"openDashboardDetails('closed')")}
   ${kpi('☎','LIGAÇÕES PARA HOJE',monthTasks.length+7,`${Math.max(0,7)} realizadas / ${monthTasks.length} pendentes`,'c-orange',undefined,"openDashboardDetails('calls')")}
   ${kpi('◷','FOLLOW-UPS ATRASADOS',delayed+8,'Requerem sua atenção','c-red',undefined,"openDashboardDetails('overdue')")}
  </div>
@@ -1074,7 +1090,7 @@ function goalPlanPanel(){
  </div>`;
 }
 function insight(ic,text,val,cl){return `<div class="insight"><div class="circle">${ic}</div><span>${text}</span><strong class="${cl==='red'?'up':''}">${val}</strong><span>›</span></div>`}
-function taskRow(t){return `<div class="list-row" style="cursor:pointer" onclick="showTaskDetails(${t.id})"><span class="time">${t.time}</span><div class="row-main"><b>${esc(t.company)}</b><small>${esc(t.title)}</small></div><div class="row-icon">${t.type==='Ligação'?'☎':t.type==='E-mail'?'✉':t.type==='WhatsApp'?'💬':'♟'}</div></div>`}
+function taskRow(t){return `<div class="list-row" style="cursor:pointer" onclick="showTaskDetails(${t.id})"><span class="time">${t.time}</span><div class="row-main"><b>${esc(t.company)}</b><small>${esc(t.title)}</small></div><div class="row-icon">${t.type==='Ligação'?'☎':t.type==='E-mail'?'✉':t.type==='WhatsApp'?'💬':'📌'}</div></div>`}
 function mapHTML(){return `<div class="map"><div class="water"></div><span class="map-label" style="left:17%;top:17%">Nova Iguaçu</span><span class="map-label" style="left:66%;top:18%">Itaboraí</span><span class="map-label" style="left:50%;top:72%">Rio de Janeiro</span><span class="map-label" style="right:13%;top:63%">Niterói</span>${[['p-green',12,65],['p-green',28,25],['p-blue',50,40],['p-orange',70,28],['p-red',80,13],['p-green',88,68],['p-red',30,75],['p-orange',40,20],['p-red',66,80],['p-green',18,80]].map(x=>`<i class="pin ${x[0]}" style="left:${x[1]}%;top:${x[2]}%"></i>`).join('')}</div>`}
 function tablePage(title,desc,toolbar,table){return `<div class="page-head"><div><h1>${title}</h1><p>${desc}</p></div><div class="actions">${toolbar}</div></div>${table}`}
 function companyRowHtml(c){
@@ -1085,6 +1101,7 @@ function companyGroupTable(list,emptyMsg){
  return list.length?`<div class="card table-wrap"><table class="table companies-group-table"><thead><tr><th>Empresa</th><th>Cidade</th><th>Telefone</th><th>Segmento</th><th>Status</th><th>Origem</th><th>Última interação</th><th>Lead Score</th><th>Responsável</th><th>Ações</th></tr></thead><tbody>${list.map(companyRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
 }
 let _companyFilters={search:'',origin:'',region:''};
+let _pageFilters={contatos:{search:''},oportunidades:{search:''},tarefas:{search:''},propostas:{search:'',status:''}};
 function applyCompanyFilters(){
  const q=(_companyFilters.search||'').toLowerCase().trim();
  const origin=_companyFilters.origin||'';
@@ -1153,6 +1170,7 @@ function showCompanyDetails(id){
  ${companyTasksPanel(c.name,c.id)}
  ${companyProposalsPanel(c.name)}`;
  document.getElementById('companyDetailEditBtn').onclick=()=>{closeCompanyDetails();editItem('company',id)};
+ document.getElementById('companyDetailDeleteBtn').onclick=()=>{closeCompanyDetails();del('companies',id)};
  document.getElementById('companyDetailTaskBtn').onclick=()=>{closeCompanyDetails();quickTask(c.name)};
  document.getElementById('companyDetailProposalBtn').onclick=()=>{closeCompanyDetails();quickProposal(c.name)};
  document.getElementById('companyDetailDealBtn').onclick=()=>{closeCompanyDetails();quickDeal(c.name)};
@@ -1224,6 +1242,7 @@ function showDealDetails(id){
    ${field('Prioridade',d.priority)}
    ${field('Próximo passo',d.next)}
  </div>
+ <div class="field" style="margin-top:4px"><label>Observação comercial</label><div style="padding:8px 0;white-space:pre-wrap">${d.notes?esc(d.notes):'<span style="color:#8a94a3">Nenhuma observação</span>'}</div></div>
  ${company?`<div class="form-grid" style="margin-top:10px;border-top:1px solid var(--line);padding-top:14px">
    ${field('CNPJ',company.cnpj)}
    ${field('Cidade',company.city)}
@@ -1238,13 +1257,14 @@ function showDealDetails(id){
    const history=(data.contactHistory||[]).filter(h=>h.company===d.company).sort((a,b)=>(b.date+b.time)>(a.date+a.time)?1:-1);
    if(!history.length)return '<div style="padding:10px;color:#8a94a3;font-size:13px">Nenhum contato registrado ainda.</div>';
    return history.map(h=>`<div class="list-row" style="align-items:center"><span>${h.channel==='whatsapp'?'💬':h.channel==='telefone'?'☎️':'📇'} ${fmtDateBR(new Date(h.date+'T00:00:00'))} ${h.time}</span><span style="display:flex;gap:3px">
-     <button onclick="openContactOutcomeMenu(${h.id},'produtivo',()=>showDealDetails(${d.id}))" style="border:1px solid ${h.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${h.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${h.outcome==='produtivo'?'#17813a':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer">✅ Produtivo</button>
-     <button onclick="openContactOutcomeMenu(${h.id},'improdutivo',()=>showDealDetails(${d.id}))" style="border:1px solid ${h.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${h.outcome==='improdutivo'?'#feecec':'#fff'};color:${h.outcome==='improdutivo'?'#b91c1c':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer">❌ Improdutivo</button>
+     <button onclick="quickSetOutcome(${h.id},'produtivo',()=>showDealDetails(${d.id}))" style="border:1px solid ${h.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${h.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${h.outcome==='produtivo'?'#17813a':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer">✅ Produtivo</button>
+     <button onclick="quickSetOutcome(${h.id},'improdutivo',()=>showDealDetails(${d.id}))" style="border:1px solid ${h.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${h.outcome==='improdutivo'?'#feecec':'#fff'};color:${h.outcome==='improdutivo'?'#b91c1c':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer">❌ Improdutivo</button>
    </span>${h.reason?`<br><small style="color:#8a94a3">${esc(h.reason)}</small>`:''}</div>`).join('');
  })()}</div>
  <div style="display:flex;gap:6px;margin:10px 0">${whatsappBtn(cel,null,d.company,mainContact?.name)} ${callBtn(cel,'📞','Ligar celular',d.company,mainContact?.name)} ${callBtn(tel,'☎️','Ligar fixo',d.company,mainContact?.name)}</div>
  <div class="card panel" style="margin-top:6px"><div class="panel-head"><h3>Contatos vinculados</h3></div>${contactsRows}</div>`;
  document.getElementById('dealDetailEditBtn').onclick=()=>{closeDealDetails();editItem('deal',id)};
+ document.getElementById('dealDetailDeleteBtn').onclick=()=>{closeDealDetails();del('deals',id)};
  document.getElementById('dealDetailModal').classList.add('open');
 }
 function closeDealDetails(){document.getElementById('dealDetailModal').classList.remove('open')}
@@ -1267,8 +1287,15 @@ function quickLogContact(companyName,channel){
 }
 function renderContacts(){
  const rows=data.contacts.map(c=>`<tr class="ftxt-${followupClsByCompanyName(c.company)}"><td><b><a href="#" onclick="event.preventDefault();showContactDetails(${c.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(c.name)}</a></b></td><td>${esc(c.company)}</td><td>${esc(c.role)}</td><td>${esc(c.cel)}</td><td>${esc(c.tel)}</td><td>${esc(c.email)}</td><td>${whatsappBtn(c.cel,null,c.company,c.name)} ${callBtn(c.cel,'📞','Ligar celular',c.company,c.name)} ${callBtn(c.tel,'☎️','Ligar fixo',c.company,c.name)} <button class="btn small" onclick="editItem('contact',${c.id})">Editar</button> <button class="btn small danger" onclick="del('contacts',${c.id})">Excluir</button></td></tr>`).join('');
- document.getElementById('contatos').innerHTML=tablePage('Contatos','Pessoas, decisores e responsáveis técnicos/comerciais',`<button class="btn primary" onclick="openForm('contact')">＋ Novo contato</button>`,`<div class="toolbar"><input placeholder="Pesquisar contato..." oninput="filterTable(this,'contactsTable')"></div><div class="card table-wrap"><table class="table" id="contactsTable"><thead><tr><th>Nome</th><th>Empresa</th><th>Cargo</th><th>Celular</th><th>Telefone fixo</th><th>E-mail</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+ document.getElementById('contatos').innerHTML=tablePage('Contatos','Pessoas, decisores e responsáveis técnicos/comerciais',`<button class="btn primary" onclick="openForm('contact')">＋ Novo contato</button>`,`<div class="toolbar"><input id="contactsSearchInput" placeholder="Pesquisar contato..." oninput="filterContactsSearch(this.value)"></div><div class="card table-wrap"><table class="table" id="contactsTable"><thead><tr><th>Nome</th><th>Empresa</th><th>Cargo</th><th>Celular</th><th>Telefone fixo</th><th>E-mail</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+ document.getElementById('contactsSearchInput').value=_pageFilters.contatos.search||'';
+ applyContactsFilter();
 }
+function applyContactsFilter(){
+ const q=(_pageFilters.contatos.search||'').toLowerCase();
+ document.querySelectorAll('#contactsTable tbody tr').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none');
+}
+function filterContactsSearch(q){_pageFilters.contatos.search=q;applyContactsFilter()}
 function dealRowHtml(d){
  return `<tr><td><b><a href="#" onclick="event.preventDefault();showCompanyDetailsByName('${String(d.company).replace(/'/g,"’")}')" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(d.company)}</a></b></td><td><b><a href="#" onclick="event.preventDefault();showDealDetails(${d.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(d.title)}</a></b></td><td>${money(d.value)}</td><td><span class="tag">${d.stage}</span></td><td>${d.prob}%</td><td>${d.priority}</td><td>${d.next}</td><td><button class="btn small" onclick="editItem('deal',${d.id})">Editar</button> <button class="btn small danger" onclick="del('deals',${d.id})">Excluir</button></td></tr>`;
 }
@@ -1276,7 +1303,7 @@ function dealGroupTable(list,emptyMsg){
  return list.length?`<div class="card table-wrap"><table class="table"><thead><tr><th>Empresa</th><th>Oportunidade</th><th>Valor</th><th>Etapa</th><th>Prob.</th><th>Prioridade</th><th>Próximo passo</th><th>Ações</th></tr></thead><tbody>${list.map(dealRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
 }
 function toggleClosedDeals(){toggleGroup('grp-deals-closed')}
-function filterDealsSearch(q){filterGroupedSearch('oportunidades',q)}
+function filterDealsSearch(q){_pageFilters.oportunidades.search=q;filterGroupedSearch('oportunidades',q)}
 function renderDeals(){
  const now=today();
  const openDeals=data.deals.filter(d=>d.stage!=='Fechado'&&d.stage!=='Perdido');
@@ -1286,19 +1313,21 @@ function renderDeals(){
  const todayD=openDeals.filter(d=>d.next===now).sort((a,b)=>a.company.localeCompare(b.company,'pt-BR'));
  const upcoming=openDeals.filter(d=>d.next>now).sort((a,b)=>a.next.localeCompare(b.next));
  document.getElementById('oportunidades').innerHTML=tablePage('Oportunidades','Controle completo do funil comercial',`<button class="btn" onclick="openForm('company')">＋ Nova empresa</button><button class="btn primary" onclick="openForm('deal')">＋ Nova oportunidade</button>`,
- `<div class="toolbar"><input placeholder="Pesquisar oportunidade ou empresa..." oninput="filterDealsSearch(this.value)"></div>
+ `<div class="toolbar"><input id="dealsSearchInput" placeholder="Pesquisar oportunidade ou empresa..." oninput="filterDealsSearch(this.value)"></div>
   ${groupSection('grp-deals-overdue','🔴','#c0392b','Atrasadas',overdue.length,dealGroupTable(overdue,'Nenhuma oportunidade com próximo passo atrasado.'))}
   ${groupSection('grp-deals-today','🟡','#b8860b','Hoje',todayD.length,dealGroupTable(todayD,'Nenhum próximo passo para hoje.'))}
   ${groupSection('grp-deals-upcoming','🟢','#2aa653','Próximas',upcoming.length,dealGroupTable(upcoming,'Nenhuma oportunidade futura agendada.'))}
   ${groupSection('grp-deals-closed','✅','#667085','Fechadas',closed.length,dealGroupTable(closed,'Nenhuma oportunidade fechada ainda.'))}
   ${groupSection('grp-deals-lost','❌','#b91c1c','Perdidas',lost.length,dealGroupTable(lost,'Nenhuma oportunidade perdida.'))}`);
+ document.getElementById('dealsSearchInput').value=_pageFilters.oportunidades.search||'';
+ filterGroupedSearch('oportunidades',_pageFilters.oportunidades.search||'');
 }
 function renderPipeline(){
  const isNew=d=>typeof d.id==='number' && (Date.now()-d.id)<600000;
  const contactHistory=[...(data.contactHistory||[])].sort((a,b)=>(b.date+b.time)>(a.date+a.time)?1:-1);
  const contactColumn=`<div class="stage" style="background:#eef7f0"><h4>📞 Contato (Tel/WhatsApp)<span>${contactHistory.length}</span></h4>${contactHistory.length?contactHistory.map(h=>`<div class="deal" draggable="true" style="cursor:grab" ondragstart="event.dataTransfer.setData('text/plain','contact:${h.id}')" onclick="showCompanyDetailsByName('${String(h.company).replace(/'/g,"’")}')"><div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start"><div style="min-width:0"><b>${esc(h.company)}</b>${h.contactName?`<small>${esc(h.contactName)}</small>`:''}</div><div style="display:flex;gap:3px;align-items:center;flex-shrink:0"><span style="font-size:16px">${h.channel==='whatsapp'?'💬':h.channel==='telefone'?'☎️':'📇'}</span><button class="btn small danger" style="padding:4px 6px" title="Excluir" onclick="event.stopPropagation();del('contactHistory',${h.id})">🗑</button></div></div><small style="color:#59636f">${fmtDateBR(new Date(h.date+'T00:00:00'))} às ${h.time}</small><div style="display:flex;gap:3px;margin-top:6px">
-   <button onclick="event.stopPropagation();openContactOutcomeMenu(${h.id},'produtivo')" title="${h.outcome==='produtivo'&&h.reason?esc(h.reason):'Marcar como produtivo'}" style="border:1px solid ${h.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${h.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${h.outcome==='produtivo'?'#17813a':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">✅ Produtivo</button>
-   <button onclick="event.stopPropagation();openContactOutcomeMenu(${h.id},'improdutivo')" title="${h.outcome==='improdutivo'&&h.reason?esc(h.reason):'Marcar como improdutivo'}" style="border:1px solid ${h.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${h.outcome==='improdutivo'?'#feecec':'#fff'};color:${h.outcome==='improdutivo'?'#b91c1c':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">❌ Improdutivo</button>
+   <button onclick="event.stopPropagation();quickSetOutcome(${h.id},'produtivo')" title="${h.outcome==='produtivo'&&h.reason?esc(h.reason)+' (toque para trocar o motivo)':'Toque para marcar como produtivo'}" style="border:1px solid ${h.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${h.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${h.outcome==='produtivo'?'#17813a':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">✅ Produtivo</button>
+   <button onclick="event.stopPropagation();quickSetOutcome(${h.id},'improdutivo')" title="${h.outcome==='improdutivo'&&h.reason?esc(h.reason)+' (toque para trocar o motivo)':'Toque para marcar como improdutivo'}" style="border:1px solid ${h.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${h.outcome==='improdutivo'?'#feecec':'#fff'};color:${h.outcome==='improdutivo'?'#b91c1c':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">❌ Improdutivo</button>
   </div>${h.reason?`<small style="color:#8a94a3;display:block;margin-top:4px">${esc(h.reason)}</small>`:''}</div>`).join(''):'<div style="padding:10px;color:#8a94a3;font-size:12.5px">Nenhuma ligação ou WhatsApp registrado ainda. Toda vez que você usar os botões 📞/💬 do CRM para uma empresa ou contato, o registro aparece aqui automaticamente.</div>'}<div style="padding:8px 4px 2px;color:#8a94a3;font-size:11px">💡 Arraste um card para uma etapa ao lado (ex: Reunião) para criar uma oportunidade a partir dele.</div></div>`;
  document.getElementById('pipeline').innerHTML=`<div class="page-head"><div><h1>Pipeline</h1><p>Arraste oportunidades entre as etapas para atualizar o funil — ou arraste um contato da coluna 📞 para criar uma oportunidade.</p></div><button class="btn primary" onclick="openForm('deal')">＋ Nova oportunidade</button></div><div class="pipeline">${contactColumn}${dealStages.map(s=>`<div class="stage" data-stage="${s}" ondragover="event.preventDefault();this.classList.add('drop-target')" ondragleave="this.classList.remove('drop-target')" ondrop="dropDeal(event,'${s}')"><h4>${s}<span>${data.deals.filter(d=>d.stage===s).length}</span></h4>${data.deals.filter(d=>d.stage===s).map(d=>`<div class="deal" draggable="true" style="${isNew(d)?'border:1px solid #2aa653;box-shadow:0 0 0 2px rgba(42,166,83,.15);':''}cursor:pointer" ondragstart="event.dataTransfer.setData('text/plain','deal:${d.id}')" onclick="showDealDetails(${d.id})"><div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start"><div style="min-width:0"><b>${esc(d.company)}</b>${isNew(d)?' <span class="tag green" style="font-size:10px">🆕 novo</span>':''}<small>${esc(d.title)}</small></div><div style="display:flex;gap:3px;flex-shrink:0"><button class="btn small" style="padding:4px 6px" title="Editar" onclick="event.stopPropagation();editItem('deal',${d.id})">✎</button><button class="btn small danger" style="padding:4px 6px" title="Excluir" onclick="event.stopPropagation();del('deals',${d.id})">🗑</button></div></div><div class="money">${money(d.value)}</div><small>${d.prob}% • ${d.priority}</small>${dealContactLine(d.company)}</div>`).join('')}</div>`).join('')}</div>`;
 }
@@ -1372,7 +1401,7 @@ function taskGroupTable(list,emptyMsg){
  return list.length?`<div class="card table-wrap"><table class="table"><thead><tr><th>Data</th><th>Hora</th><th>Tarefa</th><th>Empresa</th><th>Contato</th><th>Tel</th><th>Tipo</th><th>Ações</th></tr></thead><tbody>${list.map(taskRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
 }
 function toggleDoneTasks(){toggleGroup('grp-tasks-done')}
-function filterTasksSearch(q){filterGroupedSearch('tarefas',q)}
+function filterTasksSearch(q){_pageFilters.tarefas.search=q;filterGroupedSearch('tarefas',q)}
 function renderTasks(){
  const now=today();
  const pend=data.tasks.filter(t=>t.status!=='Concluída');
@@ -1382,11 +1411,13 @@ function renderTasks(){
  const upcoming=pend.filter(t=>t.date>now).sort((a,b)=>(a.date+' '+a.time).localeCompare(b.date+' '+b.time));
  const doneSorted=[...done].sort((a,b)=>(b.date+' '+b.time).localeCompare(a.date+' '+a.time));
  document.getElementById('tarefas').innerHTML=tablePage('Tarefas','Follow-ups, atividades e pendências comerciais',`<button class="btn danger" onclick="deleteCompletedTasks()" ${done.length?'':'disabled'}>🗑 Excluir concluídas${done.length?' ('+done.length+')':''}</button><button class="btn primary" onclick="openForm('task')">＋ Nova tarefa</button>`,
- `${dailySuggestionsPanel()}<div class="toolbar"><input placeholder="Pesquisar por tarefa, empresa ou contato..." oninput="filterTasksSearch(this.value)"></div>
+ `${dailySuggestionsPanel()}<div class="toolbar"><input id="tasksSearchInput" placeholder="Pesquisar por tarefa, empresa ou contato..." oninput="filterTasksSearch(this.value)"></div>
  ${groupSection('grp-tasks-overdue','🔴','#c0392b','Atrasadas',overdue.length,taskGroupTable(overdue,'Nenhuma tarefa atrasada — tudo em dia por aqui.'))}
  ${groupSection('grp-tasks-today','🟡','#b8860b','Hoje',todayT.length,taskGroupTable(todayT,'Nenhuma tarefa para hoje.'))}
  ${groupSection('grp-tasks-upcoming','🟢','#2aa653','Próximas',upcoming.length,taskGroupTable(upcoming,'Nenhuma tarefa futura agendada.'))}
  ${groupSection('grp-tasks-done','✅','#667085','Concluídas',done.length,taskGroupTable(doneSorted,'Nenhuma tarefa concluída ainda.'))}`);
+ document.getElementById('tasksSearchInput').value=_pageFilters.tarefas.search||'';
+ filterGroupedSearch('tarefas',_pageFilters.tarefas.search||'');
 }
 function showTaskDetails(id){
  const t=data.tasks.find(x=>x.id===id);
@@ -1408,6 +1439,7 @@ function showTaskDetails(id){
  </div>
  <div style="display:flex;gap:6px;margin-top:6px">${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)}</div>`;
  document.getElementById('taskDetailEditBtn').onclick=()=>{closeTaskDetails();editItem('task',id)};
+ document.getElementById('taskDetailDeleteBtn').onclick=()=>{closeTaskDetails();del('tasks',id)};
  const convertBtn=document.getElementById('taskDetailConvertBtn');
  if(t.status==='Concluída' && (t.type==='Ligação'||t.type==='WhatsApp')){
   convertBtn.style.display='';
@@ -1439,10 +1471,23 @@ function renderProposals(){
  }).join('');
  document.getElementById('propostas').innerHTML=tablePage('Propostas','Criação, acompanhamento e vencimento de propostas',`<button class="btn primary" onclick="openForm('proposal')">＋ Nova proposta</button>`,
  `<div class="grid stat-grid" style="margin-bottom:14px">${reportCard('Total de propostas',total,"openDashboardDetails('allProposals')")}${reportCard('Valor total em propostas',money(totalValue),"openDashboardDetails('proposalsValue')")}${reportCard('⚠️ Vencendo (7 dias)',vencendo,"openDashboardDetails('proposalsVencendo')")}${reportCard('⛔ Vencidas',vencidas,"openDashboardDetails('proposalsVencidas')")}</div>
- <div class="toolbar"><input placeholder="Pesquisar proposta..." oninput="filterTable(this,'proposalsTable')"><select onchange="filterProposalsStatus(this.value)"><option value="">Todos os status</option><option value="Vencida">⚠️ Vencidas</option><option value="Vencendo">⚠️ Vencendo (7 dias)</option><option value="Rascunho">Rascunho</option><option value="Enviada">Enviada</option><option value="Aguardando">Aguardando</option><option value="Aprovada">Aprovada</option><option value="Recusada">Recusada</option></select></div>
+ <div class="toolbar"><input id="proposalsSearchInput" placeholder="Pesquisar proposta..." oninput="filterProposalsSearch(this.value)"><select id="proposalsStatusSelect" onchange="filterProposalsStatus(this.value)"><option value="">Todos os status</option><option value="Vencida">⚠️ Vencidas</option><option value="Vencendo">⚠️ Vencendo (7 dias)</option><option value="Rascunho">Rascunho</option><option value="Enviada">Enviada</option><option value="Aguardando">Aguardando</option><option value="Aprovada">Aprovada</option><option value="Recusada">Recusada</option></select></div>
  <div class="card table-wrap"><table class="table" id="proposalsTable"><thead><tr><th>Empresa</th><th>Produto/Serviço</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+ document.getElementById('proposalsSearchInput').value=_pageFilters.propostas.search||'';
+ document.getElementById('proposalsStatusSelect').value=_pageFilters.propostas.status||'';
+ applyProposalsFilter();
 }
-function filterProposalsStatus(v){document.querySelectorAll('#proposalsTable tbody tr').forEach(r=>{if(!v){r.style.display='';return}r.style.display=(r.dataset.status===v||r.dataset.due===v)?'':'none'})}
+function applyProposalsFilter(){
+ const q=(_pageFilters.propostas.search||'').toLowerCase();
+ const status=_pageFilters.propostas.status||'';
+ document.querySelectorAll('#proposalsTable tbody tr').forEach(r=>{
+  const matchesSearch=!q||r.innerText.toLowerCase().includes(q);
+  const matchesStatus=!status||r.dataset.status===status||r.dataset.due===status;
+  r.style.display=(matchesSearch&&matchesStatus)?'':'none';
+ });
+}
+function filterProposalsSearch(q){_pageFilters.propostas.search=q;applyProposalsFilter()}
+function filterProposalsStatus(v){_pageFilters.propostas.status=v;applyProposalsFilter()}
 function renderProducts(){
  const rows=data.products.map(p=>`<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.category)}</td><td>${money(p.price)}</td><td><span class="tag green">${p.active}</span></td><td><button class="btn small" onclick="editItem('product',${p.id})">Editar</button> <button class="btn small danger" onclick="del('products',${p.id})">Excluir</button></td></tr>`).join('');
  document.getElementById('produtos').innerHTML=tablePage('Produtos','Catálogo comercial de conectividade e serviços',`<button class="btn primary" onclick="openForm('product')">＋ Novo produto</button>`,`<div class="card table-wrap"><table class="table"><thead><tr><th>Produto</th><th>Categoria</th><th>Preço</th><th>Ativo</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`);
@@ -1566,7 +1611,7 @@ function renderReports(){
   label=label.charAt(0).toUpperCase()+label.slice(1);
   return `<option value="${val}" ${i===0?'selected':''}>${label}</option>`;
  }).join('');
- document.getElementById('relatorios').innerHTML=`<div class="page-head"><div><h1>Relatórios</h1><p>Indicadores para acompanhamento da operação comercial</p></div><button class="btn" onclick="window.print()">🖨 Imprimir</button></div><div class="grid stat-grid">${reportCard('Pipeline',money(pipe),"openDashboardDetails('pipeline')")}${reportCard('Receita fechada',money(close),"openDashboardDetails('closed')")}${reportCard('Oportunidades',data.deals.length,"openDashboardDetails('allDeals')")}${reportCard('Ticket médio',money(avg),"openDashboardDetails('allDeals')")}</div><div class="grid two" style="margin-top:14px"><div class="card panel"><div class="panel-head"><h3>Conversão por etapa</h3></div>${stages.map((s,i)=>`<div class="list-row" style="cursor:pointer" onclick="openDashboardDetails('${esc(s)}')" title="Ver oportunidades nesta etapa"><span>${s}</span><div class="bar" style="width:45%"><i style="width:${Math.max(8,100-i*13)}%"></i></div><b>${Math.max(3,100-i*13)}%</b></div>`).join('')}</div><div class="card panel"><div class="panel-head"><h3>Performance por empresa</h3></div>${[...data.deals].sort((a,b)=>b.value-a.value).slice(0,7).map(d=>`<div class="list-row" style="cursor:pointer" onclick="showDealDetails(${d.id})" title="Ver detalhes da oportunidade"><span>${esc(d.company)}</span><b>${money(d.value)}</b></div>`).join('')}</div></div><div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>📞 Empresas contatadas por semana</h3></div><p style="margin:0 0 12px;color:#667085;font-size:13px">Conta empresas distintas contatadas por semana e o meio usado (telefone ou WhatsApp), a partir de tarefas de Ligação/WhatsApp concluídas e de cliques em ligar/WhatsApp no CRM.</p><div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn small primary" id="btnModeMonth" onclick="toggleReportMode('month')">Por mês</button><button class="btn small" id="btnModeCustom" onclick="toggleReportMode('custom')">Período personalizado</button></div><div id="reportModeMonth" style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><label style="font-size:13px;color:#667085">Mês:</label><select id="reportMonthSelect" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px">${monthOptions}</select></div><div id="reportModeCustom" style="display:none;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap"><label style="font-size:13px;color:#667085">De:</label><input type="date" id="reportStartDate" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px"><label style="font-size:13px;color:#667085">Até:</label><input type="date" id="reportEndDate" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px"></div><button class="btn primary" onclick="generateContactReport()">Gerar relatório</button><div id="contactReportResults" style="margin-top:14px"></div></div>`;
+ document.getElementById('relatorios').innerHTML=`<div class="page-head"><div><h1>Relatórios <span class="page-purpose">📊 números formais, pra exportar/imprimir</span></h1><p>Indicadores para acompanhamento da operação comercial</p></div><button class="btn" onclick="window.print()">🖨 Imprimir</button></div><div class="grid stat-grid">${reportCard('Pipeline',money(pipe),"openDashboardDetails('pipeline')")}${reportCard('Receita fechada',money(close),"openDashboardDetails('closed')")}${reportCard('Oportunidades',data.deals.length,"openDashboardDetails('allDeals')")}${reportCard('Ticket médio',money(avg),"openDashboardDetails('allDeals')")}</div><div class="grid two" style="margin-top:14px"><div class="card panel"><div class="panel-head"><h3>Conversão por etapa</h3></div>${stages.map((s,i)=>`<div class="list-row" style="cursor:pointer" onclick="openDashboardDetails('${esc(s)}')" title="Ver oportunidades nesta etapa"><span>${s}</span><div class="bar" style="width:45%"><i style="width:${Math.max(8,100-i*13)}%"></i></div><b>${Math.max(3,100-i*13)}%</b></div>`).join('')}</div><div class="card panel"><div class="panel-head"><h3>Performance por empresa</h3></div>${[...data.deals].sort((a,b)=>b.value-a.value).slice(0,7).map(d=>`<div class="list-row" style="cursor:pointer" onclick="showDealDetails(${d.id})" title="Ver detalhes da oportunidade"><span>${esc(d.company)}</span><b>${money(d.value)}</b></div>`).join('')}</div></div><div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>📞 Empresas contatadas por semana</h3></div><p style="margin:0 0 12px;color:#667085;font-size:13px">Conta empresas distintas contatadas por semana e o meio usado (telefone ou WhatsApp), a partir de tarefas de Ligação/WhatsApp concluídas e de cliques em ligar/WhatsApp no CRM.</p><div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn small primary" id="btnModeMonth" onclick="toggleReportMode('month')">Por mês</button><button class="btn small" id="btnModeCustom" onclick="toggleReportMode('custom')">Período personalizado</button></div><div id="reportModeMonth" style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><label style="font-size:13px;color:#667085">Mês:</label><select id="reportMonthSelect" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px">${monthOptions}</select></div><div id="reportModeCustom" style="display:none;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap"><label style="font-size:13px;color:#667085">De:</label><input type="date" id="reportStartDate" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px"><label style="font-size:13px;color:#667085">Até:</label><input type="date" id="reportEndDate" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px"></div><button class="btn primary" onclick="generateContactReport()">Gerar relatório</button><div id="contactReportResults" style="margin-top:14px"></div></div>`;
 }
 function reportCard(a,b,action){return `<div class="card report-card" ${action?`onclick="${action}" style="cursor:pointer" title="Clique para ver os detalhes"`:''}><h3>${a}</h3><div class="big">${b}</div><small style="color:#6b7280">Atualizado agora</small></div>`}
 function mapsSearchLink(name,city){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+', '+city+' - RJ')}
@@ -1639,7 +1684,7 @@ function renderIntelligence(){
  const radarNew=RADAR_PROSPECCAO.filter(r=>!data.companies.some(c=>c.name.toLowerCase()===r.name.toLowerCase()));
  const radarByRegion={};
  radarNew.forEach(r=>{(radarByRegion[r.region]=radarByRegion[r.region]||[]).push(r)});
- document.getElementById('inteligencia').innerHTML=`<div class="page-head"><div><h1>Inteligência Comercial</h1><p>Alertas e oportunidades que merecem sua atenção.</p></div></div>${goalPlanPanel()}<div class="grid stat-grid">${reportCard('Clientes sem contato +30 dias',staleClients.length,"openDashboardDetails('staleClients')")}${reportCard('Propostas próximas do vencimento',pendingProposals.length,"openDashboardDetails('proposalsDue')")}${reportCard('Oportunidades de alto valor',money(highValueDeals.reduce((a,d)=>a+d.value,0)),"openDashboardDetails('highValueDeals')")}${reportCard('Empresas sem próximo passo',noNextStep.length,"openDashboardDetails('noNextStep')")}</div><div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>Recomendações</h3></div>${[
+ document.getElementById('inteligencia').innerHTML=`<div class="page-head"><div><h1>Inteligência Comercial <span class="page-purpose">🧠 o que fazer agora</span></h1><p>Alertas e oportunidades que merecem sua atenção.</p></div></div>${goalPlanPanel()}<div class="grid stat-grid">${reportCard('Clientes sem contato +30 dias',staleClients.length,"openDashboardDetails('staleClients')")}${reportCard('Propostas próximas do vencimento',pendingProposals.length,"openDashboardDetails('proposalsDue')")}${reportCard('Oportunidades de alto valor',money(highValueDeals.reduce((a,d)=>a+d.value,0)),"openDashboardDetails('highValueDeals')")}${reportCard('Empresas sem próximo passo',noNextStep.length,"openDashboardDetails('noNextStep')")}</div><div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>Recomendações</h3></div>${[
  {ic:'🔴',title:'Prioridade alta',desc:staleClients.length?`${staleClients.length} cliente(s) sem contato há mais de 30 dias${staleClients.length?': '+staleClients.slice(0,2).map(c=>esc(c.name)).join(', ')+(staleClients.length>2?'...':''):''}.`:'Nenhum cliente esquecido no momento — parabéns!',key:'staleClients'},
  {ic:'🟠',title:'Propostas',desc:pendingProposals.length?`${pendingProposals.length} proposta(s) vencendo em breve ou já vencida(s). Revise antes que esfriem.`:'Nenhuma proposta com vencimento próximo.',key:'proposalsDue'},
  {ic:'🟢',title:'Oportunidades de alto valor',desc:highValueDeals.length?`${highValueDeals.length} oportunidade(s) acima de R$ 50.000 em aberto, somando ${money(highValueDeals.reduce((a,d)=>a+d.value,0))}.`:'Nenhuma oportunidade de alto valor em aberto no momento.',key:'highValueDeals'},
@@ -1916,7 +1961,7 @@ function openForm(type,id=null,prefill=null){
  const defs={
  company:{title:edit?'Editar empresa':'Nova empresa',collection:'companies',fields:[['name','Empresa','text',edit?.name||''],['cnpj','CNPJ','text',edit?.cnpj||''],['city','Cidade','text',edit?.city||''],['phone','Telefone','text',edit?.phone||''],['address','Endereço','text',edit?.address||''],['email','E-mail','email',edit?.email||''],['segment','Segmento','text',edit?.segment||'ISP'],['status','Status','select',edit?.status||'Lead',stages],['origin','Origem','select',edit?.origin||'Captação de lead',origins],['leadScore','Lead Score (0-100)','number',edit?.leadScore??50],['owner','Responsável','text',edit?.owner||'Fábio Chiesa'],['notes','Observação','textarea',edit?.notes||'']]},
  contact:{title:edit?'Editar contato':'Novo contato',collection:'contacts',fields:[['name','Nome','text',edit?.name||''],['company','Empresa','company-select',edit?.company||prefill?.company||''],['role','Cargo','text',edit?.role||''],['cel','Celular (WhatsApp)','text',edit?.cel||''],['tel','Telefone fixo','text',edit?.tel||''],['email','E-mail','email',edit?.email||'']]},
- deal:{title:edit?'Editar oportunidade':'Nova oportunidade',collection:'deals',fields:[['company','Empresa','company-select',edit?.company||prefill?.company||''],['title','Oportunidade','text',edit?.title||''],['value','Valor','number',edit?.value||0],['stage','Etapa','select',edit?.stage||'Lead',dealStages],['prob','Probabilidade (%)','number',edit?.prob||20],['priority','Prioridade','select',edit?.priority||'Média',['Alta','Média','Baixa']],['next','Próximo passo','date',edit?.next||today()]]},
+ deal:{title:edit?'Editar oportunidade':'Nova oportunidade',collection:'deals',fields:[['company','Empresa','company-select',edit?.company||prefill?.company||''],['title','Oportunidade','text',edit?.title||''],['value','Valor','number',edit?.value||0],['stage','Etapa','select',edit?.stage||'Lead',dealStages],['prob','Probabilidade (%)','number',edit?.prob||20],['priority','Prioridade','select',edit?.priority||'Média',['Alta','Média','Baixa']],['next','Próximo passo','date',edit?.next||today()],['notes','Observação comercial','textarea',edit?.notes||'']]},
  task:{title:edit?'Editar tarefa':'Nova tarefa',collection:'tasks',fields:[['title','Tarefa','text',edit?.title||''],['company','Empresa','company-select',edit?.company||prefill?.company||''],['contact','Contato','contact-select',edit?.contact||''],['date','Data','date',edit?.date||today()],['time','Hora','time',edit?.time||'09:00'],['type','Tipo','select',edit?.type||prefill?.type||'Ligação',['Ligação','E-mail','Reunião','WhatsApp','Tarefa','Nota']],['status','Status','select',edit?.status||'Pendente',['Pendente','Concluída']]]},
  proposal:{title:edit?'Editar proposta':'Nova proposta',collection:'proposals',fields:[['company','Empresa','company-select',edit?.company||prefill?.company||''],['item','Produto/Serviço','text',edit?.item||''],['value','Valor','number',edit?.value||0],['date','Vencimento','date',edit?.date||today()],['status','Status','select',edit?.status||'Rascunho',['Rascunho','Enviada','Aguardando','Aprovada','Recusada']]]},
  product:{title:edit?'Editar produto':'Novo produto',collection:'products',fields:[['name','Produto','text',edit?.name||''],['category','Categoria','text',edit?.category||''],['price','Preço','number',edit?.price||0],['active','Ativo','select',edit?.active||'Sim',['Sim','Não']]]},
@@ -1964,7 +2009,7 @@ function handleDealAutomation(deal, previousStage, isNew){
 }
 function completeTask(id){const t=data.tasks.find(x=>x.id===id);if(t){t.status=t.status==='Concluída'?'Pendente':'Concluída';if(t.status==='Concluída' && t.dealId){const d=data.deals.find(x=>x.id===t.dealId);if(d){const next=new Date();next.setDate(next.getDate()+2);d.next=next.toISOString().slice(0,10)}}save();toast(t.status==='Concluída'?'Tarefa concluída':'Tarefa reaberta')}}
 function saveForm(type,collection,id){
- const defs={company:['name','cnpj','city','phone','address','email','segment','status','origin','leadScore','owner','notes'],contact:['name','company','role','cel','tel','email'],deal:['company','title','value','stage','prob','priority','next'],task:['title','company','contact','date','time','type','status'],proposal:['company','item','value','date','status'],product:['name','category','price','active'],event:['title','company','date','time']};
+ const defs={company:['name','cnpj','city','phone','address','email','segment','status','origin','leadScore','owner','notes'],contact:['name','company','role','cel','tel','email'],deal:['company','title','value','stage','prob','priority','next','notes'],task:['title','company','contact','date','time','type','status'],proposal:['company','item','value','date','status'],product:['name','category','price','active'],event:['title','company','date','time']};
  const obj={};defs[type].forEach(k=>{let v=document.getElementById('f_'+k)?.value??'';if(['value','prob','price','leadScore'].includes(k))v=Number(v);obj[k]=v});
  if(type==='company' && obj.phone)obj.phone=formatPhoneBR(obj.phone);
  if(type==='contact'){if(obj.cel)obj.cel=formatPhoneBR(obj.cel);if(obj.tel)obj.tel=formatPhoneBR(obj.tel)}
