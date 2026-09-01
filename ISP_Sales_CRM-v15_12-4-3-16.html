@@ -121,7 +121,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 
 <script>
 const KEY='isp_sales_crm_v1';
-const APP_BUILD='v15.50 · 2026-08-30 · Inteligência Comercial: card "Número de leads a contatar por semana" agora é inteligente — mostra quantos leads já foram contatados nesta semana e lista as empresas de maior potencial ainda não contatadas, com ligar/WhatsApp e "✔ Contatada" direto ali (mesma lógica de potencial e do relatório de contatos por semana já usados no CRM)';
+const APP_BUILD='v15.51 · 2026-08-30 · Empresas: novo filtro por Região (as 8 regiões oficiais do RJ, calculadas a partir da cidade cadastrada) — e corrigido o bug em que qualquer filtro (busca ou origem) era perdido assim que algo mudava em segundo plano (ex: sincronização automática a cada 15s); os filtros agora persistem até você trocá-los ou limpar';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const RADAR_PROSPECCAO=[
  // Baixada Fluminense — Duque de Caxias
@@ -678,6 +678,21 @@ function saveSyncConfigFromForm(){
 }
 function money(n){return Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function normalizeCity(s){return String(s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+const REGION_BY_CITY={
+ 'rio de janeiro':'Região Metropolitana','niteroi':'Região Metropolitana','sao goncalo':'Região Metropolitana','marica':'Região Metropolitana','itaborai':'Região Metropolitana','mage':'Região Metropolitana','guapimirim':'Região Metropolitana','tangua':'Região Metropolitana','rio bonito':'Região Metropolitana','cachoeiras de macacu':'Região Metropolitana',
+ 'duque de caxias':'Baixada Fluminense','nova iguacu':'Baixada Fluminense','sao joao de meriti':'Baixada Fluminense','belford roxo':'Baixada Fluminense','nilopolis':'Baixada Fluminense','mesquita':'Baixada Fluminense','queimados':'Baixada Fluminense','japeri':'Baixada Fluminense','seropedica':'Baixada Fluminense','itaguai':'Baixada Fluminense',
+ 'cabo frio':'Região dos Lagos','armacao dos buzios':'Região dos Lagos','buzios':'Região dos Lagos','araruama':'Região dos Lagos','saquarema':'Região dos Lagos','rio das ostras':'Região dos Lagos','iguaba grande':'Região dos Lagos','sao pedro da aldeia':'Região dos Lagos','arraial do cabo':'Região dos Lagos',
+ 'petropolis':'Região Serrana','teresopolis':'Região Serrana','nova friburgo':'Região Serrana','tres rios':'Região Serrana','sumidouro':'Região Serrana','cantagalo':'Região Serrana','cordeiro':'Região Serrana',
+ 'campos dos goytacazes':'Norte Fluminense','macae':'Norte Fluminense','sao joao da barra':'Norte Fluminense','quissama':'Norte Fluminense','sao fidelis':'Norte Fluminense','carapebus':'Norte Fluminense',
+ 'itaperuna':'Noroeste Fluminense','santo antonio de padua':'Noroeste Fluminense','miracema':'Noroeste Fluminense','bom jesus do itabapoana':'Noroeste Fluminense','italva':'Noroeste Fluminense',
+ 'angra dos reis':'Costa Verde','paraty':'Costa Verde','mangaratiba':'Costa Verde',
+ 'volta redonda':'Centro-Sul Fluminense','barra mansa':'Centro-Sul Fluminense','resende':'Centro-Sul Fluminense','barra do pirai':'Centro-Sul Fluminense','valenca':'Centro-Sul Fluminense','vassouras':'Centro-Sul Fluminense','piraí':'Centro-Sul Fluminense',
+};
+function regionOfCity(city){
+ if(!city)return 'Não informada';
+ return REGION_BY_CITY[normalizeCity(city)]||'Outra região';
+}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
 function today(){return new Date().toISOString().slice(0,10)}
 function digits(s){return String(s||'').replace(/\D/g,'')}
@@ -1063,38 +1078,54 @@ function mapHTML(){return `<div class="map"><div class="water"></div><span class
 function tablePage(title,desc,toolbar,table){return `<div class="page-head"><div><h1>${title}</h1><p>${desc}</p></div><div class="actions">${toolbar}</div></div>${table}`}
 function companyRowHtml(c){
  const f=companyFollowupInfo(c);
- return `<tr data-origin="${esc(c.origin||'')}"><td><b><a href="#" onclick="event.preventDefault();showCompanyDetails(${c.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(c.name)}</a></b></td><td>${esc(c.city)}</td><td>${esc(c.phone)}</td><td>${esc(c.segment)}</td><td><span class="tag">${esc(c.status)}</span></td><td><span class="tag">${esc(c.origin||'—')}</span></td><td>${followupBadge(c)}</td><td>${leadScoreBadge(c.leadScore)}</td><td>${esc(c.owner)}</td><td>${actionIcons(c.phone,c.name)} <button class="btn small" title="Agendar tarefa de contato futuro" onclick="quickTask('${String(c.name).replace(/'/g,"’")}')">📅 Tarefa</button> <button class="btn small" title="Registrar envio de proposta" onclick="quickProposal('${String(c.name).replace(/'/g,"’")}')">📄 Proposta</button> <button class="btn small" title="Criar oportunidade" onclick="quickDeal('${String(c.name).replace(/'/g,"’")}')">💼 Oportunidade</button> <button class="btn small" onclick="editItem('company',${c.id})">Editar</button> <button class="btn small danger" onclick="del('companies',${c.id})">Excluir</button></td></tr>`;
+ return `<tr data-origin="${esc(c.origin||'')}" data-region="${esc(regionOfCity(c.city))}"><td><b><a href="#" onclick="event.preventDefault();showCompanyDetails(${c.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(c.name)}</a></b></td><td>${esc(c.city)}</td><td>${esc(c.phone)}</td><td>${esc(c.segment)}</td><td><span class="tag">${esc(c.status)}</span></td><td><span class="tag">${esc(c.origin||'—')}</span></td><td>${followupBadge(c)}</td><td>${leadScoreBadge(c.leadScore)}</td><td>${esc(c.owner)}</td><td>${actionIcons(c.phone,c.name)} <button class="btn small" title="Agendar tarefa de contato futuro" onclick="quickTask('${String(c.name).replace(/'/g,"’")}')">📅 Tarefa</button> <button class="btn small" title="Registrar envio de proposta" onclick="quickProposal('${String(c.name).replace(/'/g,"’")}')">📄 Proposta</button> <button class="btn small" title="Criar oportunidade" onclick="quickDeal('${String(c.name).replace(/'/g,"’")}')">💼 Oportunidade</button> <button class="btn small" onclick="editItem('company',${c.id})">Editar</button> <button class="btn small danger" onclick="del('companies',${c.id})">Excluir</button></td></tr>`;
 }
 function companyGroupTable(list,emptyMsg){
  return list.length?`<div class="card table-wrap"><table class="table companies-group-table"><thead><tr><th>Empresa</th><th>Cidade</th><th>Telefone</th><th>Segmento</th><th>Status</th><th>Origem</th><th>Última interação</th><th>Lead Score</th><th>Responsável</th><th>Ações</th></tr></thead><tbody>${list.map(companyRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
 }
-function filterCompaniesSearch(q){filterGroupedSearch('empresas',q)}
-function filterCompaniesOrigin(origin){
+let _companyFilters={search:'',origin:'',region:''};
+function applyCompanyFilters(){
+ const q=(_companyFilters.search||'').toLowerCase().trim();
+ const origin=_companyFilters.origin||'';
+ const region=_companyFilters.region||'';
+ const anyActive=!!(q||origin||region);
  document.querySelectorAll('#empresas .collapsible-group').forEach(group=>{
   const body=group.querySelector('.group-body');
   const icon=body?document.getElementById(body.id+'-icon'):null;
   let anyVisible=false;
   group.querySelectorAll('tbody tr').forEach(r=>{
-   const show=!origin||r.dataset.origin===origin;
+   const show=(!q||r.innerText.toLowerCase().includes(q))&&(!origin||r.dataset.origin===origin)&&(!region||r.dataset.region===region);
    r.style.display=show?'':'none';
    if(show)anyVisible=true;
   });
   if(body){
-   if(origin){body.style.display=anyVisible?'':'none';if(icon)icon.textContent=anyVisible?'▾':'▸'}
+   if(anyActive){body.style.display=anyVisible?'':'none';if(icon)icon.textContent=anyVisible?'▾':'▸'}
    else{body.style.display='none';if(icon)icon.textContent='▸'}
   }
  });
+}
+function filterCompaniesSearch(q){_companyFilters.search=q;applyCompanyFilters()}
+function filterCompaniesOrigin(v){_companyFilters.origin=v;applyCompanyFilters()}
+function filterCompaniesRegion(v){_companyFilters.region=v;applyCompanyFilters()}
+function clearCompanyFilters(){
+ _companyFilters={search:'',origin:'',region:''};
+ renderCompanies();
 }
 function renderCompanies(){
  const sorted=[...data.companies].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
  const groups={red:[],gray:[],orange:[],green:[]};
  sorted.forEach(c=>{const cls=companyFollowupInfo(c).cls;(groups[cls]||groups.gray).push(c)});
+ const regionsPresent=[...new Set(sorted.map(c=>regionOfCity(c.city)))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
  document.getElementById('empresas').innerHTML=tablePage('Empresas','Cadastro e gestão dos seus clientes e prospects',`<button class="btn" onclick="exportCSV('companies')">⇩ Exportar</button><button class="btn primary" onclick="openForm('company')">＋ Nova empresa</button>`,
- `<div class="toolbar"><input placeholder="Pesquisar empresa..." oninput="filterCompaniesSearch(this.value)"><select onchange="filterCompaniesOrigin(this.value)"><option value="">Todas as origens</option>${origins.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select></div>
+ `<div class="toolbar"><input id="companiesSearchInput" placeholder="Pesquisar empresa..." oninput="filterCompaniesSearch(this.value)"><select id="companiesOriginSelect" onchange="filterCompaniesOrigin(this.value)"><option value="">Todas as origens</option>${origins.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select><select id="companiesRegionSelect" onchange="filterCompaniesRegion(this.value)"><option value="">Todas as regiões</option>${regionsPresent.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}</select>${(_companyFilters.search||_companyFilters.origin||_companyFilters.region)?'<button class="btn small" onclick="clearCompanyFilters()">✕ Limpar filtros</button>':''}</div>
   ${groupSection('grp-comp-red','🔴','#c0392b','Esquecidas (+15d sem contato)',groups.red.length,companyGroupTable(groups.red,'Nenhuma empresa esquecida — parabéns!'))}
   ${groupSection('grp-comp-gray','⚪','#8a94a3','Nunca contatadas',groups.gray.length,companyGroupTable(groups.gray,'Nenhuma empresa sem contato registrado.'))}
   ${groupSection('grp-comp-orange','🟡','#b8860b','Atenção (11-15d)',groups.orange.length,companyGroupTable(groups.orange,'Nenhuma empresa em atenção.'))}
   ${groupSection('grp-comp-green','🟢','#2aa653','Em dia (até 10d)',groups.green.length,companyGroupTable(groups.green,'Nenhuma empresa em dia ainda.'))}`);
+ document.getElementById('companiesSearchInput').value=_companyFilters.search||'';
+ document.getElementById('companiesOriginSelect').value=_companyFilters.origin||'';
+ document.getElementById('companiesRegionSelect').value=_companyFilters.region||'';
+ applyCompanyFilters();
 }
 function showCompanyDetails(id){
  const c=data.companies.find(x=>x.id===id);
