@@ -26,7 +26,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 .insights .insight{padding:12px 4px;border-bottom:1px solid #eef1f5;display:flex;align-items:center;gap:12px}.insight:last-child{border:0}.insight .circle{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#eef3f8}.insight strong{margin-left:auto}.map{height:280px;border-radius:10px;overflow:hidden;position:relative;background:linear-gradient(140deg,#dcefd8,#eef5e9 45%,#d8e9f4 46%,#cfe4f0 100%);background-image:linear-gradient(25deg,transparent 48%,rgba(255,255,255,.8) 49%,transparent 51%),linear-gradient(155deg,transparent 48%,rgba(255,255,255,.7) 49%,transparent 51%),linear-gradient(90deg,rgba(132,171,119,.15) 1px,transparent 1px),linear-gradient(rgba(132,171,119,.15) 1px,transparent 1px);background-size:170px 130px,210px 150px,45px 45px,45px 45px}.map .water{position:absolute;width:52%;height:90%;right:-5%;top:2%;background:rgba(113,181,220,.28);border-radius:55% 0 0 45%;transform:rotate(-9deg)}.pin{position:absolute;width:16px;height:16px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 4px #777}.pin::after{content:"";width:6px;height:6px;background:#fff;border-radius:50%;position:absolute;left:5px;top:5px}.p-green{background:#2aa653}.p-blue{background:#2e75d7}.p-orange{background:#f1a619}.p-red{background:#df3434}.map-label{position:absolute;font-size:12px;color:#64748b;font-weight:600}.legend{display:flex;gap:15px;padding-top:9px;font-size:11px;color:#606a75}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
 
 .section{display:none}.section.active{display:block}
-.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;background:#fff}.table th,.table td{padding:11px 10px;border-bottom:1px solid #edf0f4;text-align:left;font-size:13px;white-space:nowrap}.table th{background:#f8fafc;color:#667085;font-size:11px;text-transform:uppercase}.table tr:hover td{background:#fbfdff}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.toolbar input,.toolbar select,.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:8px;padding:10px 11px;outline:none;background:#fff;width:100%}.toolbar input{max-width:320px}.pipeline{display:grid;grid-template-columns:repeat(8,minmax(180px,1fr));gap:10px;overflow:auto;padding-bottom:10px}.stage{background:#eef2f7;border-radius:10px;padding:10px;min-height:460px}.stage h4{margin:0 0 10px;font-size:13px;display:flex;justify-content:space-between}.deal{background:#fff;border:1px solid #e7ebf0;border-radius:9px;padding:11px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.04);cursor:grab}.deal b{font-size:13px}.deal small{display:block;color:var(--muted);margin:5px 0}.deal .money{font-weight:700;color:#1d4f91}.drop-target{outline:2px dashed #3b82f6}
+.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;background:#fff}.table th,.table td{padding:11px 10px;border-bottom:1px solid #edf0f4;text-align:left;font-size:13px;white-space:nowrap}.table th{background:#f8fafc;color:#667085;font-size:11px;text-transform:uppercase}.table tr:hover td{background:#fbfdff}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.toolbar input,.toolbar select,.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:8px;padding:10px 11px;outline:none;background:#fff;width:100%}.toolbar input{max-width:320px}.pipeline{display:grid;grid-template-columns:repeat(8,minmax(180px,1fr));gap:10px;overflow:auto;padding-bottom:10px;cursor:grab}.pipeline.panning{cursor:grabbing;user-select:none}.stage{background:#eef2f7;border-radius:10px;padding:10px;min-height:460px}.stage h4{margin:0 0 10px;font-size:13px;display:flex;justify-content:space-between}.deal{background:#fff;border:1px solid #e7ebf0;border-radius:9px;padding:11px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.04);cursor:grab}.deal b{font-size:13px}.deal small{display:block;color:var(--muted);margin:5px 0}.deal .money{font-weight:700;color:#1d4f91}.drop-target{outline:2px dashed #3b82f6}
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.day{background:#fff;border:1px solid var(--line);min-height:110px;padding:8px;border-radius:8px}.day b{font-size:12px}.event{background:#edf5ff;color:#1f5b9d;padding:5px;border-radius:5px;margin-top:7px;font-size:11px}
 .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}.field.full{grid-column:1/-1}.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}.modal.open{display:flex}.modal-box{width:min(720px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:15px;box-shadow:0 25px 80px rgba(0,0,0,.25)}.modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.modal-body{padding:20px}.modal-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
 .toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:12px 16px;border-radius:9px;box-shadow:0 10px 30px #0003;display:none;z-index:200}.toast.show{display:block}
@@ -116,11 +116,12 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 <div class="modal" id="dealDetailModal"><div class="modal-box"><div class="modal-head"><b id="dealDetailTitle">Oportunidade</b><button class="icon-btn" onclick="closeDealDetails()">✕</button></div><div class="modal-body" id="dealDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeDealDetails()">Fechar</button><button class="btn primary" id="dealDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="contactDetailModal"><div class="modal-box"><div class="modal-head"><b id="contactDetailTitle">Contato</b><button class="icon-btn" onclick="closeContactDetails()">✕</button></div><div class="modal-body" id="contactDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeContactDetails()">Fechar</button><button class="btn danger" id="contactDetailDeleteBtn">Excluir</button><button class="btn primary" id="contactDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="quickLogModal"><div class="modal-box"><div class="modal-head"><b>Registrar contato feito fora do CRM</b><button class="icon-btn" onclick="closeQuickLog()">✕</button></div><div class="modal-body"><input id="quickLogSearch" placeholder="Buscar empresa..." oninput="renderQuickLogList(this.value)" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;margin-bottom:10px;box-sizing:border-box"><div id="quickLogList"></div></div><div class="modal-foot"><button class="btn" onclick="closeQuickLog()">Fechar</button></div></div></div>
+<div class="modal" id="contactOutcomeModal"><div class="modal-box" style="max-width:380px"><div class="modal-head"><b id="contactOutcomeTitle">Motivo</b><button class="icon-btn" onclick="closeContactOutcomeModal()">✕</button></div><div class="modal-body" id="contactOutcomeBody"></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
 const KEY='isp_sales_crm_v1';
-const APP_BUILD='v15.46 · 2026-08-30 · Coluna "Contato (Tel/WhatsApp)" do Pipeline ganhou botão 🗑 Excluir em cada card, igual às outras colunas (e corrigido um bug introduzido na v15.45 que impedia a coluna de aparecer)';
+const APP_BUILD='v15.50 · 2026-08-30 · Inteligência Comercial: card "Número de leads a contatar por semana" agora é inteligente — mostra quantos leads já foram contatados nesta semana e lista as empresas de maior potencial ainda não contatadas, com ligar/WhatsApp e "✔ Contatada" direto ali (mesma lógica de potencial e do relatório de contatos por semana já usados no CRM)';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const RADAR_PROSPECCAO=[
  // Baixada Fluminense — Duque de Caxias
@@ -638,6 +639,33 @@ function startAutoSync(){
  });
  window.addEventListener('pagehide',flushPendingPushNow);
 }
+function initPipelinePan(){
+ // Clicar e segurar fora dos cards rola o Pipeline para os lados (sem atrapalhar o arrastar dos cards entre etapas)
+ let panEl=null,startX=0,startScroll=0,isPanning=false,moved=false;
+ document.addEventListener('mousedown',(e)=>{
+  const pipEl=e.target.closest('.pipeline');
+  if(!pipEl)return;
+  if(e.target.closest('[draggable="true"]'))return;
+  if(e.target.closest('button,a,input,select,textarea'))return;
+  isPanning=true;moved=false;
+  panEl=pipEl;
+  startX=e.pageX;
+  startScroll=pipEl.scrollLeft;
+  pipEl.classList.add('panning');
+ });
+ document.addEventListener('mousemove',(e)=>{
+  if(!isPanning||!panEl)return;
+  const walk=e.pageX-startX;
+  if(Math.abs(walk)>3)moved=true;
+  if(moved){e.preventDefault();panEl.scrollLeft=startScroll-walk}
+ });
+ function stopPan(){
+  if(panEl)panEl.classList.remove('panning');
+  isPanning=false;moved=false;panEl=null;
+ }
+ document.addEventListener('mouseup',stopPan);
+ document.addEventListener('mouseleave',stopPan);
+}
 function saveSyncConfigFromForm(){
  const url=document.getElementById('syncUrl').value.trim();
  const key=document.getElementById('syncKey').value.trim();
@@ -795,12 +823,26 @@ function deleteContactHistory(id){
  renderPipeline();
  toast('Registro de contato excluído');
 }
-function setContactOutcome(id,outcome){
+const PRODUTIVO_REASONS=['Mensagem WhatsApp enviada','Ligação atendida','Envio de e-mail'];
+const IMPRODUTIVO_REASONS=['Mensagem de WhatsApp não respondida','Ligação não atendida','E-mail não respondido'];
+let _contactOutcomeCallback=null;
+function openContactOutcomeMenu(id,outcome,callback){
+ _contactOutcomeCallback=callback||null;
+ const reasons=outcome==='produtivo'?PRODUTIVO_REASONS:IMPRODUTIVO_REASONS;
+ document.getElementById('contactOutcomeTitle').textContent=outcome==='produtivo'?'Por que foi produtivo?':'Por que foi improdutivo?';
+ document.getElementById('contactOutcomeBody').innerHTML=reasons.map(r=>`<button class="btn" style="width:100%;text-align:left;margin-bottom:8px" onclick="setContactOutcome(${id},'${outcome}','${String(r).replace(/'/g,"’")}')">${esc(r)}</button>`).join('')+`<button class="btn" style="width:100%;text-align:left;color:#8a94a3;margin-top:4px" onclick="setContactOutcome(${id},null,null)">Remover marcação</button>`;
+ document.getElementById('contactOutcomeModal').classList.add('open');
+}
+function closeContactOutcomeModal(){document.getElementById('contactOutcomeModal').classList.remove('open')}
+function setContactOutcome(id,outcome,reason){
  const entry=(data.contactHistory||[]).find(h=>h.id===id);
  if(!entry)return;
- entry.outcome=entry.outcome===outcome?null:outcome;
+ entry.outcome=outcome;
+ entry.reason=reason||null;
  save();
+ closeContactOutcomeModal();
  renderPipeline();
+ if(_contactOutcomeCallback)_contactOutcomeCallback();
 }
 function dealContactLine(companyName){
  const last=lastContactEntry(companyName);
@@ -809,8 +851,8 @@ function dealContactLine(companyName){
  return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #f0f2f5;display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11px">
    <span style="color:#59636f">${icon} ${fmtDateBR(new Date(last.date+'T00:00:00'))} ${last.time}</span>
    <span style="display:flex;gap:3px">
-     <button onclick="event.stopPropagation();setContactOutcome(${last.id},'produtivo')" title="Marcar como produtivo" style="border:1px solid ${last.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${last.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${last.outcome==='produtivo'?'#17813a':'#8a94a3'};border-radius:6px;padding:2px 6px;font-size:11px;cursor:pointer">✅</button>
-     <button onclick="event.stopPropagation();setContactOutcome(${last.id},'improdutivo')" title="Marcar como improdutivo" style="border:1px solid ${last.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${last.outcome==='improdutivo'?'#feecec':'#fff'};color:${last.outcome==='improdutivo'?'#b91c1c':'#8a94a3'};border-radius:6px;padding:2px 6px;font-size:11px;cursor:pointer">❌</button>
+     <button onclick="event.stopPropagation();openContactOutcomeMenu(${last.id},'produtivo')" title="${last.outcome==='produtivo'&&last.reason?esc(last.reason):'Marcar como produtivo'}" style="border:1px solid ${last.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${last.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${last.outcome==='produtivo'?'#17813a':'#8a94a3'};border-radius:6px;padding:2px 6px;font-size:11px;cursor:pointer">✅</button>
+     <button onclick="event.stopPropagation();openContactOutcomeMenu(${last.id},'improdutivo')" title="${last.outcome==='improdutivo'&&last.reason?esc(last.reason):'Marcar como improdutivo'}" style="border:1px solid ${last.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${last.outcome==='improdutivo'?'#feecec':'#fff'};color:${last.outcome==='improdutivo'?'#b91c1c':'#8a94a3'};border-radius:6px;padding:2px 6px;font-size:11px;cursor:pointer">❌</button>
    </span>
   </div>`;
 }
@@ -964,11 +1006,28 @@ function calcGoalPlan(){
  const pct=target>0?Math.min(100,Math.round((closed/target)*100)):0;
  return{target,closed,weightedPipeline,remaining,deadline,daysLeft,weeksLeft,avgTicket,conversion,dealsNeeded,leadsNeeded,leadsPerWeek,valuePerWeek,pct,achieved:remaining<=0};
 }
+function weeklyLeadIntel(g){
+ const wk=isoWeekOf(new Date(today()+'T00:00:00'));
+ const startStr=wk.start.toISOString().slice(0,10),endStr=wk.end.toISOString().slice(0,10);
+ const history=buildContactHistory().filter(h=>h.date>=startStr&&h.date<=endStr);
+ const contactedCompanies=new Set(history.map(h=>h.company));
+ const weeklyTarget=Math.max(g.leadsPerWeek,5);
+ const suggestions=[...data.companies]
+  .filter(c=>!contactedCompanies.has(c.name))
+  .sort((a,b)=>companyMagnitude(b)-companyMagnitude(a))
+  .slice(0,weeklyTarget);
+ return {week:wk,contactedCount:contactedCompanies.size,weeklyTarget,suggestions};
+}
 function goalPlanPanel(){
  const g=calcGoalPlan();
  const dl=g.deadline.toLocaleDateString('pt-BR');
+ const wi=weeklyLeadIntel(g);
+ const weeklyBody=wi.suggestions.length?`<div class="card table-wrap"><table class="table"><thead><tr><th>#</th><th>Empresa</th><th>Potencial</th><th>Telefone</th><th>Última interação</th><th>Ações</th></tr></thead><tbody>${wi.suggestions.map((c,i)=>suggestionRowHtml(c,i)).join('')}</tbody></table></div>`:`<div style="padding:14px 0;color:#8a94a3;font-size:13px">Você já contatou todos os leads priorizados desta semana. 🎉</div>`;
+ const weeklyPanel=groupSection('grp-weekly-leads','📋','#1e40af','Ver leads sugeridos para esta semana',wi.suggestions.length,weeklyBody);
  if(g.achieved){
-  return `<div class="card panel" style="margin-bottom:14px;border:1px solid #b7e4c7;background:#f0fdf4"><div class="panel-head"><h3>🎯 Meta do mês</h3><span class="tag green">No caminho certo</span></div><p style="margin:0;color:#166534">Considerando o que já foi fechado (${money(g.closed)}) e a previsão ponderada do pipeline (${money(g.weightedPipeline)}), você já cobre sua meta de ${money(g.target)} até <b>${dl}</b>. Continue trabalhando as oportunidades em aberto para garantir o fechamento. 🎉</p></div>`;
+  return `<div class="card panel" style="margin-bottom:14px;border:1px solid #b7e4c7;background:#f0fdf4"><div class="panel-head"><h3>🎯 Meta do mês</h3><span class="tag green">No caminho certo</span></div><p style="margin:0 0 12px;color:#166534">Considerando o que já foi fechado (${money(g.closed)}) e a previsão ponderada do pipeline (${money(g.weightedPipeline)}), você já cobre sua meta de ${money(g.target)} até <b>${dl}</b>. Continue trabalhando as oportunidades em aberto para garantir o fechamento. 🎉</p>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span class="tag ${wi.contactedCount>=wi.weeklyTarget?'green':'orange'}" style="font-size:12.5px">✅ ${wi.contactedCount} de ${wi.weeklyTarget} leads já contatados esta semana</span><span style="font-size:12px;color:#64748b">(${fmtDateBR(wi.week.start)} a ${fmtDateBR(wi.week.end)})</span></div>
+  ${weeklyPanel}</div>`;
  }
  return `<div class="card panel" style="margin-bottom:14px">
   <div class="panel-head"><h3>🎯 Plano para bater a meta até dia 25</h3><span class="tag orange">${g.pct}% da meta atingida</span></div>
@@ -979,9 +1038,14 @@ function goalPlanPanel(){
     <div style="font-size:12.5px;color:#1e40af;font-weight:600;text-transform:uppercase;letter-spacing:.03em">Número de leads a contatar por semana</div>
     <div style="font-size:30px;font-weight:800;color:#1e3a8a;line-height:1.15">${g.leadsPerWeek} leads/semana</div>
     <div style="font-size:12.5px;color:#475569">Com base numa taxa de conversão de <b>${(g.conversion*100).toFixed(1)}%</b>, para bater a meta até <b>${dl}</b>.</div>
+    <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+     <span class="tag ${wi.contactedCount>=wi.weeklyTarget?'green':'orange'}" style="font-size:12.5px">✅ ${wi.contactedCount} de ${wi.weeklyTarget} já contatados esta semana</span>
+     <span style="font-size:12px;color:#64748b">(${fmtDateBR(wi.week.start)} a ${fmtDateBR(wi.week.end)})</span>
+    </div>
    </div>
   </div>
-  <div class="grid stat-grid">
+  ${weeklyPanel}
+  <div class="grid stat-grid" style="margin-top:14px">
    ${reportCard('Meta do mês',money(g.target))}
    ${reportCard('Já fechado + previsto',money(g.closed+g.weightedPipeline))}
    ${reportCard('Falta conquistar',money(g.remaining))}
@@ -1142,9 +1206,9 @@ function showDealDetails(id){
    const history=(data.contactHistory||[]).filter(h=>h.company===d.company).sort((a,b)=>(b.date+b.time)>(a.date+a.time)?1:-1);
    if(!history.length)return '<div style="padding:10px;color:#8a94a3;font-size:13px">Nenhum contato registrado ainda.</div>';
    return history.map(h=>`<div class="list-row" style="align-items:center"><span>${h.channel==='whatsapp'?'💬':h.channel==='telefone'?'☎️':'📇'} ${fmtDateBR(new Date(h.date+'T00:00:00'))} ${h.time}</span><span style="display:flex;gap:3px">
-     <button onclick="setContactOutcome(${h.id},'produtivo');showDealDetails(${d.id})" style="border:1px solid ${h.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${h.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${h.outcome==='produtivo'?'#17813a':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer">✅ Produtivo</button>
-     <button onclick="setContactOutcome(${h.id},'improdutivo');showDealDetails(${d.id})" style="border:1px solid ${h.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${h.outcome==='improdutivo'?'#feecec':'#fff'};color:${h.outcome==='improdutivo'?'#b91c1c':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer">❌ Improdutivo</button>
-   </span></div>`).join('');
+     <button onclick="openContactOutcomeMenu(${h.id},'produtivo',()=>showDealDetails(${d.id}))" style="border:1px solid ${h.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${h.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${h.outcome==='produtivo'?'#17813a':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer">✅ Produtivo</button>
+     <button onclick="openContactOutcomeMenu(${h.id},'improdutivo',()=>showDealDetails(${d.id}))" style="border:1px solid ${h.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${h.outcome==='improdutivo'?'#feecec':'#fff'};color:${h.outcome==='improdutivo'?'#b91c1c':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer">❌ Improdutivo</button>
+   </span>${h.reason?`<br><small style="color:#8a94a3">${esc(h.reason)}</small>`:''}</div>`).join('');
  })()}</div>
  <div style="display:flex;gap:6px;margin:10px 0">${whatsappBtn(cel,null,d.company,mainContact?.name)} ${callBtn(cel,'📞','Ligar celular',d.company,mainContact?.name)} ${callBtn(tel,'☎️','Ligar fixo',d.company,mainContact?.name)}</div>
  <div class="card panel" style="margin-top:6px"><div class="panel-head"><h3>Contatos vinculados</h3></div>${contactsRows}</div>`;
@@ -1198,11 +1262,11 @@ function renderDeals(){
 function renderPipeline(){
  const isNew=d=>typeof d.id==='number' && (Date.now()-d.id)<600000;
  const contactHistory=[...(data.contactHistory||[])].sort((a,b)=>(b.date+b.time)>(a.date+a.time)?1:-1);
- const contactColumn=`<div class="stage" style="background:#eef7f0"><h4>📞 Contato (Tel/WhatsApp)<span>${contactHistory.length}</span></h4>${contactHistory.length?contactHistory.map(h=>`<div class="deal" style="cursor:pointer" onclick="showCompanyDetailsByName('${String(h.company).replace(/'/g,"’")}')"><div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start"><div style="min-width:0"><b>${esc(h.company)}</b>${h.contactName?`<small>${esc(h.contactName)}</small>`:''}</div><div style="display:flex;gap:3px;align-items:center;flex-shrink:0"><span style="font-size:16px">${h.channel==='whatsapp'?'💬':h.channel==='telefone'?'☎️':'📇'}</span><button class="btn small danger" style="padding:4px 6px" title="Excluir" onclick="event.stopPropagation();del('contactHistory',${h.id})">🗑</button></div></div><small style="color:#59636f">${fmtDateBR(new Date(h.date+'T00:00:00'))} às ${h.time}</small><div style="display:flex;gap:3px;margin-top:6px">
-   <button onclick="event.stopPropagation();setContactOutcome(${h.id},'produtivo')" style="border:1px solid ${h.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${h.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${h.outcome==='produtivo'?'#17813a':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">✅ Produtivo</button>
-   <button onclick="event.stopPropagation();setContactOutcome(${h.id},'improdutivo')" style="border:1px solid ${h.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${h.outcome==='improdutivo'?'#feecec':'#fff'};color:${h.outcome==='improdutivo'?'#b91c1c':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">❌ Improdutivo</button>
-  </div></div>`).join(''):'<div style="padding:10px;color:#8a94a3;font-size:12.5px">Nenhuma ligação ou WhatsApp registrado ainda. Toda vez que você usar os botões 📞/💬 do CRM para uma empresa ou contato, o registro aparece aqui automaticamente.</div>'}</div>`;
- document.getElementById('pipeline').innerHTML=`<div class="page-head"><div><h1>Pipeline</h1><p>Arraste oportunidades entre as etapas para atualizar o funil.</p></div><button class="btn primary" onclick="openForm('deal')">＋ Nova oportunidade</button></div><div class="pipeline">${contactColumn}${stages.map(s=>`<div class="stage" data-stage="${s}" ondragover="event.preventDefault();this.classList.add('drop-target')" ondragleave="this.classList.remove('drop-target')" ondrop="dropDeal(event,'${s}')"><h4>${s}<span>${data.deals.filter(d=>d.stage===s).length}</span></h4>${data.deals.filter(d=>d.stage===s).map(d=>`<div class="deal" draggable="true" style="${isNew(d)?'border:1px solid #2aa653;box-shadow:0 0 0 2px rgba(42,166,83,.15);':''}cursor:pointer" ondragstart="event.dataTransfer.setData('text/plain','${d.id}')" onclick="showDealDetails(${d.id})"><div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start"><div style="min-width:0"><b>${esc(d.company)}</b>${isNew(d)?' <span class="tag green" style="font-size:10px">🆕 novo</span>':''}<small>${esc(d.title)}</small></div><div style="display:flex;gap:3px;flex-shrink:0"><button class="btn small" style="padding:4px 6px" title="Editar" onclick="event.stopPropagation();editItem('deal',${d.id})">✎</button><button class="btn small danger" style="padding:4px 6px" title="Excluir" onclick="event.stopPropagation();del('deals',${d.id})">🗑</button></div></div><div class="money">${money(d.value)}</div><small>${d.prob}% • ${d.priority}</small>${dealContactLine(d.company)}</div>`).join('')}</div>`).join('')}</div>`;
+ const contactColumn=`<div class="stage" style="background:#eef7f0"><h4>📞 Contato (Tel/WhatsApp)<span>${contactHistory.length}</span></h4>${contactHistory.length?contactHistory.map(h=>`<div class="deal" draggable="true" style="cursor:grab" ondragstart="event.dataTransfer.setData('text/plain','contact:${h.id}')" onclick="showCompanyDetailsByName('${String(h.company).replace(/'/g,"’")}')"><div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start"><div style="min-width:0"><b>${esc(h.company)}</b>${h.contactName?`<small>${esc(h.contactName)}</small>`:''}</div><div style="display:flex;gap:3px;align-items:center;flex-shrink:0"><span style="font-size:16px">${h.channel==='whatsapp'?'💬':h.channel==='telefone'?'☎️':'📇'}</span><button class="btn small danger" style="padding:4px 6px" title="Excluir" onclick="event.stopPropagation();del('contactHistory',${h.id})">🗑</button></div></div><small style="color:#59636f">${fmtDateBR(new Date(h.date+'T00:00:00'))} às ${h.time}</small><div style="display:flex;gap:3px;margin-top:6px">
+   <button onclick="event.stopPropagation();openContactOutcomeMenu(${h.id},'produtivo')" title="${h.outcome==='produtivo'&&h.reason?esc(h.reason):'Marcar como produtivo'}" style="border:1px solid ${h.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${h.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${h.outcome==='produtivo'?'#17813a':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">✅ Produtivo</button>
+   <button onclick="event.stopPropagation();openContactOutcomeMenu(${h.id},'improdutivo')" title="${h.outcome==='improdutivo'&&h.reason?esc(h.reason):'Marcar como improdutivo'}" style="border:1px solid ${h.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${h.outcome==='improdutivo'?'#feecec':'#fff'};color:${h.outcome==='improdutivo'?'#b91c1c':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">❌ Improdutivo</button>
+  </div>${h.reason?`<small style="color:#8a94a3;display:block;margin-top:4px">${esc(h.reason)}</small>`:''}</div>`).join(''):'<div style="padding:10px;color:#8a94a3;font-size:12.5px">Nenhuma ligação ou WhatsApp registrado ainda. Toda vez que você usar os botões 📞/💬 do CRM para uma empresa ou contato, o registro aparece aqui automaticamente.</div>'}<div style="padding:8px 4px 2px;color:#8a94a3;font-size:11px">💡 Arraste um card para uma etapa ao lado (ex: Reunião) para criar uma oportunidade a partir dele.</div></div>`;
+ document.getElementById('pipeline').innerHTML=`<div class="page-head"><div><h1>Pipeline</h1><p>Arraste oportunidades entre as etapas para atualizar o funil — ou arraste um contato da coluna 📞 para criar uma oportunidade.</p></div><button class="btn primary" onclick="openForm('deal')">＋ Nova oportunidade</button></div><div class="pipeline">${contactColumn}${stages.map(s=>`<div class="stage" data-stage="${s}" ondragover="event.preventDefault();this.classList.add('drop-target')" ondragleave="this.classList.remove('drop-target')" ondrop="dropDeal(event,'${s}')"><h4>${s}<span>${data.deals.filter(d=>d.stage===s).length}</span></h4>${data.deals.filter(d=>d.stage===s).map(d=>`<div class="deal" draggable="true" style="${isNew(d)?'border:1px solid #2aa653;box-shadow:0 0 0 2px rgba(42,166,83,.15);':''}cursor:pointer" ondragstart="event.dataTransfer.setData('text/plain','deal:${d.id}')" onclick="showDealDetails(${d.id})"><div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start"><div style="min-width:0"><b>${esc(d.company)}</b>${isNew(d)?' <span class="tag green" style="font-size:10px">🆕 novo</span>':''}<small>${esc(d.title)}</small></div><div style="display:flex;gap:3px;flex-shrink:0"><button class="btn small" style="padding:4px 6px" title="Editar" onclick="event.stopPropagation();editItem('deal',${d.id})">✎</button><button class="btn small danger" style="padding:4px 6px" title="Excluir" onclick="event.stopPropagation();del('deals',${d.id})">🗑</button></div></div><div class="money">${money(d.value)}</div><small>${d.prob}% • ${d.priority}</small>${dealContactLine(d.company)}</div>`).join('')}</div>`).join('')}</div>`;
 }
 function resolveTaskContact(t){
  if(!t.contact)return null;
@@ -1268,7 +1332,7 @@ function taskRowHtml(t){
  const contact=resolveTaskContact(t);
  const contactName=contact?contact.name:(t.contact?String(t.contact).split(' — ')[0]:'');
  const cel=contact?.cel||'',tel=contact?.tel||'';
- return `<tr><td>${t.date}</td><td>${t.time}</td><td><b><a href="#" onclick="event.preventDefault();showTaskDetails(${t.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(t.title)}</a></b></td><td>${esc(t.company)}</td><td>${esc(contactName)}</td><td>${esc(cel||tel)}</td><td>${t.type}</td><td>${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)} <button class="btn small success" onclick="completeTask(${t.id})">${t.status==='Concluída'?'Reabrir':'Concluir'}</button> <button class="btn small" onclick="editItem('task',${t.id})">Editar</button>${t.status==='Concluída'?` <button class="btn small danger" onclick="del('tasks',${t.id})">Excluir</button>`:''}</td></tr>`;
+ return `<tr><td>${t.date}</td><td>${t.time}</td><td>${t.company?`<small style="display:block;color:#8a94a3;font-weight:600">${esc(t.company)}</small>`:''}<b><a href="#" onclick="event.preventDefault();showTaskDetails(${t.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(t.title)}</a></b></td><td>${esc(t.company)}</td><td>${esc(contactName)}</td><td>${esc(cel||tel)}</td><td>${t.type}</td><td>${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)} <button class="btn small success" onclick="completeTask(${t.id})">${t.status==='Concluída'?'Reabrir':'Concluir'}</button> <button class="btn small" onclick="editItem('task',${t.id})">Editar</button>${t.status==='Concluída'?` <button class="btn small danger" onclick="del('tasks',${t.id})">Excluir</button>`:''}</td></tr>`;
 }
 function taskGroupTable(list,emptyMsg){
  return list.length?`<div class="card table-wrap"><table class="table"><thead><tr><th>Data</th><th>Hora</th><th>Tarefa</th><th>Empresa</th><th>Contato</th><th>Tel</th><th>Tipo</th><th>Ações</th></tr></thead><tbody>${list.map(taskRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
@@ -2022,7 +2086,25 @@ function showConfirm(msg,onOk,okLabel){
 function closeConfirm(){document.getElementById('confirmModal').classList.remove('open');confirmCallback=null}
 document.getElementById('confirmOkBtn').onclick=()=>{const cb=confirmCallback;closeConfirm();if(cb)cb()};
 function del(col,id){showConfirm('Excluir este registro?',()=>{data[col]=data[col].filter(x=>x.id!==id);save();toast('Registro excluído')},'Excluir')}
-function dropDeal(e,stage){e.currentTarget.classList.remove('drop-target');const id=Number(e.dataTransfer.getData('text/plain'));const d=data.deals.find(x=>x.id===id);if(d){d.stage=stage;d.prob=stage==='Fechado'?100:d.prob;save();toast('Oportunidade movida para '+stage)}}
+function dropDeal(e,stage){
+ e.currentTarget.classList.remove('drop-target');
+ const raw=e.dataTransfer.getData('text/plain');
+ if(raw.startsWith('contact:')){
+  const cid=Number(raw.slice(8));
+  const h=(data.contactHistory||[]).find(x=>x.id===cid);
+  if(!h)return;
+  const nextId=Math.max(0,...data.deals.map(x=>x.id))+1;
+  const channelLabel=h.channel==='whatsapp'?'WhatsApp':h.channel==='telefone'?'ligação':'contato';
+  data.deals.push({id:nextId,company:h.company,title:'Oportunidade via '+channelLabel+(h.contactName?' com '+h.contactName:''),value:0,stage,prob:stage==='Fechado'?100:20,priority:'Média',next:''});
+  save();
+  toast('Oportunidade criada em "'+stage+'" a partir do contato com '+h.company);
+  editItem('deal',nextId);
+  return;
+ }
+ const id=Number(raw.startsWith('deal:')?raw.slice(5):raw);
+ const d=data.deals.find(x=>x.id===id);
+ if(d){d.stage=stage;d.prob=stage==='Fechado'?100:d.prob;save();toast('Oportunidade movida para '+stage)}
+}
 function filterTable(input,id){const q=input.value.toLowerCase();document.querySelectorAll('#'+id+' tbody tr').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none')}
 function filterTasks(v){document.querySelectorAll('#tarefas tbody tr').forEach(r=>r.style.display=(!v||r.innerText.includes(v))?'':'none')}
 function globalSearch(q){
@@ -2143,6 +2225,7 @@ function importCSV(){const inp=document.createElement('input');inp.type='file';i
 function resetDemo(){showConfirm('Restaurar os dados de demonstração? Um backup de segurança dos seus dados atuais será baixado antes.',()=>{silentBackup();data=structuredClone(defaultData);save();toast('Dados restaurados (backup de segurança baixado)')},'Restaurar')}
 document.getElementById('buildBadge').textContent=APP_BUILD;
 renderAll();
+initPipelinePan();
 if(getSyncConfig()){
  (async()=>{
   if(localStorage.getItem(SYNC_PENDING_KEY)){
