@@ -125,7 +125,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 
 <script>
 const KEY='isp_sales_crm_v1';
-const APP_BUILD='v15.59 · 2026-08-30 · Primeiros passos de Inteligência de Vendas: (1) ao marcar uma oportunidade como Perdida, o CRM agora pergunta o motivo (Preço, Concorrência, Timing, etc — base para futura análise de por que estamos perdendo negócios); (2) Lead Score transparente — combina potencial de receita + engajamento (produtivo/improdutivo) + tempo parado na etapa, com explicação visível ao tocar; (3) novo alerta "Clientes em risco" — identifica clientes ativos com os 2 últimos contatos marcados como improdutivos, sinal de insatisfação antes do silêncio total';
+const APP_BUILD='v15.66 · 2026-08-30 · Corrigido bug do Pipeline: mover um card entre colunas não faz mais a tela "pular" de volta pra coluna de Contato (a posição de rolagem agora é preservada). Cards da coluna 📞 Contato ganharam campo de observação livre — digite o motivo de ter sido produtivo/improdutivo e ele fica salvo (Enter ou clicar fora pra confirmar)';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -199,8 +199,6 @@ const RADAR_PROSPECCAO=[
  {name:'Zamix Provedor de Acesso a Internet',city:'Volta Redonda',region:'Centro-Sul Fluminense',note:'Território novo (São Luiz) — fundada em 2020, telefone (24) 3512-2000 — pesquisa de mercado ago/2026'},
  {name:'Prinse Multimídia',city:'Volta Redonda',region:'Centro-Sul Fluminense',note:'Território novo — bem avaliada em teste de velocidade local — pesquisa de mercado ago/2026'},
  {name:'Dinamix Info Telecom',city:'Volta Redonda',region:'Centro-Sul Fluminense',note:'Território novo — bem avaliada em teste de velocidade local — pesquisa de mercado ago/2026'},
- // Prioridade alta — sinal de crescimento real (não apenas presença no mercado)
- {name:'FIBRALINK',city:'Petrópolis',region:'Região Serrana',note:'⭐ PRIORIDADE — provedor em forte expansão, atuando em Petrópolis/Guapimirim/Magé/Duque de Caxias simultaneamente, eleito 3x internet mais rápida do estado (nota de satisfação 4.97-4.98). Crescendo em várias cidades ao mesmo tempo = provável necessidade de mais capacidade de link — pesquisa de mercado ago/2026'},
  // Região Serrana — Teresópolis e Nova Friburgo (território novo)
  {name:'Sumicity Internet',city:'Teresópolis',region:'Região Serrana',note:'Território novo (Várzea) — pesquisa de mercado ago/2026'},
  {name:'Agatangelo Telecom',city:'Teresópolis',region:'Região Serrana',note:'Território novo — melhor avaliado da cidade (Prêmio MelhorPlano.net) — pesquisa de mercado ago/2026'},
@@ -211,6 +209,9 @@ const RADAR_PROSPECCAO=[
  {name:'Tellfree Brasil Telefonia IP',city:'Macaé',region:'Norte Fluminense',note:'Território novo — pesquisa de mercado ago/2026'},
  // Região dos Lagos — Búzios (território novo)
  {name:'Dyga Telefonia IP',city:'Armação dos Búzios',region:'Região dos Lagos',note:'Território novo — banda larga empresarial, VPN, internet dedicada — pesquisa de mercado ago/2026'},
+ // Radar de sinais de compra — rodada de teste (ago/2026): sinais de crescimento ativo (vagas técnicas em aberto)
+ {name:'Gileade Telecom',city:'Rio de Janeiro',region:'Região Metropolitana',note:'🟡 SINAL DE CRESCIMENTO (médio) — site próprio diz "seguimos expandindo", construiu rede própria no RJ (trocou rádio por fibra). Porte parece compatível com necessidade de backbone atacado — radar de sinais de compra ago/2026'},
+ {name:'Città Telecom',city:'Rio de Janeiro',region:'Região Metropolitana',note:'🟢 SINAL DE CRESCIMENTO (forte, checar porte antes de abordar) — opera em RJ/SP/RS, contratando ativamente (postagens de RH recentes no LinkedIn). Atenção: porte multi-estadual pode indicar backbone próprio, como a Gigalink — confirmar se é prospect ou concorrente antes de investir tempo — radar de sinais de compra ago/2026'},
 ];
 function importRadarProspeccao(){
  const novos=RADAR_PROSPECCAO.filter(r=>!data.companies.some(c=>c.name.toLowerCase()===r.name.toLowerCase()));
@@ -644,6 +645,159 @@ function startAutoSync(){
  });
  window.addEventListener('pagehide',flushPendingPushNow);
 }
+// Colunas flutuantes: clicar e segurar no título da coluna (th) para reordenar,
+// em qualquer tabela do CRM. A ordem escolhida fica salva por tipo de tabela.
+function getColumnOrder(groupKey,colCount){
+ try{
+  const saved=JSON.parse(localStorage.getItem('colorder_'+groupKey)||'null');
+  if(Array.isArray(saved)&&saved.length===colCount)return saved;
+ }catch(e){}
+ return null;
+}
+function saveColumnOrder(groupKey,order){
+ localStorage.setItem('colorder_'+groupKey,JSON.stringify(order));
+}
+function applyColumnOrder(table){
+ const groupKey=table.dataset.tableGroup||table.id;
+ if(!groupKey)return;
+ const headRow=table.querySelector('thead tr');
+ if(!headRow)return;
+ const currentCols=[...headRow.children].map(th=>th.dataset.col);
+ const order=getColumnOrder(groupKey,currentCols.length);
+ if(!order||!order.every(c=>currentCols.includes(c)))return;
+ const rows=[headRow,...table.querySelectorAll('tbody tr')];
+ rows.forEach(row=>{
+  if(row.children.length!==currentCols.length)return; // pula linhas com colspan diferente
+  const cellsByCol={};
+  [...row.children].forEach((cell,i)=>{cellsByCol[currentCols[i]]=cell});
+  order.forEach(colId=>{if(cellsByCol[colId])row.appendChild(cellsByCol[colId])});
+ });
+}
+function moveColumn(table,fromIdx,toIdx){
+ if(fromIdx===toIdx)return;
+ const rows=[table.querySelector('thead tr'),...table.querySelectorAll('tbody tr')].filter(Boolean);
+ rows.forEach(row=>{
+  const cells=row.children;
+  if(cells.length<=fromIdx||cells.length<=toIdx)return;
+  const moved=cells[fromIdx];
+  const ref=cells[toIdx];
+  if(fromIdx<toIdx)row.insertBefore(moved,ref.nextSibling);
+  else row.insertBefore(moved,ref);
+ });
+}
+function persistColumnOrder(table){
+ const groupKey=table.dataset.tableGroup||table.id;
+ if(!groupKey)return;
+ const order=[...table.querySelectorAll('thead th')].map(th=>th.dataset.col);
+ saveColumnOrder(groupKey,order);
+}
+function makeTableColumnsReorderable(table){
+ const headRow=table.querySelector('thead tr');
+ if(!headRow||table.dataset.reorderBound)return;
+ table.dataset.reorderBound='1';
+ let dragFromIdx=null;
+ headRow.addEventListener('dragstart',(e)=>{
+  const th=e.target.closest('th');
+  if(!th)return;
+  dragFromIdx=[...headRow.children].indexOf(th);
+  e.dataTransfer.effectAllowed='move';
+  th.style.opacity='0.4';
+ });
+ headRow.addEventListener('dragend',(e)=>{
+  const th=e.target.closest('th');
+  if(th)th.style.opacity='';
+  headRow.querySelectorAll('th').forEach(t=>t.style.background='');
+ });
+ headRow.addEventListener('dragover',(e)=>{
+  const th=e.target.closest('th');
+  if(!th)return;
+  e.preventDefault();
+  th.style.background='#eef5ff';
+ });
+ headRow.addEventListener('dragleave',(e)=>{
+  const th=e.target.closest('th');
+  if(th)th.style.background='';
+ });
+ headRow.addEventListener('drop',(e)=>{
+  const th=e.target.closest('th');
+  if(!th||dragFromIdx===null)return;
+  e.preventDefault();
+  th.style.background='';
+  const toIdx=[...headRow.children].indexOf(th);
+  moveColumn(table,dragFromIdx,toIdx);
+  persistColumnOrder(table);
+  dragFromIdx=null;
+ });
+ [...headRow.children].forEach(th=>{
+  th.draggable=true;
+  th.style.cursor='grab';
+  th.title=(th.title?th.title+' · ':'')+'Arraste para reordenar a coluna';
+ });
+}
+function setupReorderableTables(rootId){
+ const root=document.getElementById(rootId);
+ if(!root)return;
+ root.querySelectorAll('table[data-table-group], table[id]').forEach(table=>{
+  if(!table.dataset.tableGroup&&!table.id)return;
+  applyColumnOrder(table);
+  makeTableColumnsReorderable(table);
+ });
+}
+// Colunas flutuantes do Pipeline: mesma ideia, mas reordenando os blocos
+// .stage (divs) inteiros, não linhas de tabela — clicar e segurar no título
+// da coluna (h4) e arrastar para outra coluna troca as duas de lugar.
+function persistPipelineColumnOrder(){
+ const pipelineEl=document.querySelector('#pipeline .pipeline');
+ if(!pipelineEl)return;
+ const order=[...pipelineEl.children].map(el=>el.dataset.colId);
+ localStorage.setItem('colorder_pipeline',JSON.stringify(order));
+}
+function applyPipelineColumnOrder(){
+ const pipelineEl=document.querySelector('#pipeline .pipeline');
+ if(!pipelineEl)return;
+ let saved;
+ try{saved=JSON.parse(localStorage.getItem('colorder_pipeline')||'null')}catch(e){}
+ if(!Array.isArray(saved))return;
+ const current=[...pipelineEl.children];
+ const byId={};
+ current.forEach(el=>{byId[el.dataset.colId]=el});
+ if(saved.length!==current.length||!saved.every(id=>byId[id]))return;
+ saved.forEach(id=>pipelineEl.appendChild(byId[id]));
+}
+function initPipelineColumnReorder(){
+ const pipelineEl=document.querySelector('#pipeline .pipeline');
+ if(!pipelineEl)return;
+ let dragged=null;
+ pipelineEl.querySelectorAll('.stage > h4').forEach(h4=>{
+  const stageEl=h4.parentElement;
+  h4.draggable=true;
+  h4.style.cursor='grab';
+  h4.addEventListener('dragstart',(e)=>{
+   dragged=stageEl;
+   e.dataTransfer.setData('application/x-pipeline-col',stageEl.dataset.colId||'');
+   e.dataTransfer.effectAllowed='move';
+   stageEl.style.opacity='0.4';
+  });
+  h4.addEventListener('dragend',()=>{if(dragged)dragged.style.opacity='';dragged=null});
+  h4.addEventListener('dragover',(e)=>{
+   if(!e.dataTransfer.types.includes('application/x-pipeline-col'))return;
+   e.preventDefault();e.stopPropagation();
+   stageEl.style.outline='2px dashed #3b82f6';
+  });
+  h4.addEventListener('dragleave',()=>{stageEl.style.outline=''});
+  h4.addEventListener('drop',(e)=>{
+   if(!e.dataTransfer.types.includes('application/x-pipeline-col'))return;
+   e.preventDefault();e.stopPropagation();
+   stageEl.style.outline='';
+   if(!dragged||dragged===stageEl)return;
+   const all=[...pipelineEl.children];
+   const fromIdx=all.indexOf(dragged),toIdx=all.indexOf(stageEl);
+   if(fromIdx<toIdx)pipelineEl.insertBefore(dragged,stageEl.nextSibling);
+   else pipelineEl.insertBefore(dragged,stageEl);
+   persistPipelineColumnOrder();
+  });
+ });
+}
 function initPipelinePan(){
  // Clicar e segurar fora dos cards/links/botões rola horizontalmente (Pipeline e qualquer tabela do CRM)
  let panEl=null,startX=0,startScroll=0,isPanning=false,moved=false;
@@ -892,6 +1046,14 @@ function setContactOutcome(id,outcome,reason){
  renderPipeline();
  if(_contactOutcomeCallback)_contactOutcomeCallback();
 }
+function saveContactObservation(id,text){
+ const entry=(data.contactHistory||[]).find(h=>h.id===id);
+ if(!entry)return;
+ const trimmed=String(text||'').trim();
+ if((entry.observacao||'')===trimmed)return; // nada mudou, evita re-render à toa
+ entry.observacao=trimmed;
+ save();
+}
 function dealContactLine(companyName){
  const last=lastContactEntry(companyName);
  if(!last)return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #f0f2f5;font-size:11px;color:#8a94a3">📞 Sem contato registrado</div>`;
@@ -1132,7 +1294,7 @@ function companyRowHtml(c){
  return `<tr data-origin="${esc(c.origin||'')}" data-region="${esc(regionOfCity(c.city))}"><td><b><a href="#" onclick="event.preventDefault();showCompanyDetails(${c.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(c.name)}</a></b></td><td>${esc(c.city)}</td><td>${esc(c.phone)}</td><td>${esc(c.segment)}</td><td><span class="tag">${esc(c.status)}</span></td><td><span class="tag">${esc(c.origin||'—')}</span></td><td>${followupBadge(c)}</td><td>${leadScoreBadge(c.leadScore)}</td><td>${esc(c.owner)}</td><td>${actionIcons(c.phone,c.name)} <button class="btn small" title="Agendar tarefa de contato futuro" onclick="quickTask('${String(c.name).replace(/'/g,"’")}')">📅 Tarefa</button> <button class="btn small" title="Registrar envio de proposta" onclick="quickProposal('${String(c.name).replace(/'/g,"’")}')">📄 Proposta</button> <button class="btn small" title="Criar oportunidade" onclick="quickDeal('${String(c.name).replace(/'/g,"’")}')">💼 Oportunidade</button> <button class="btn small" onclick="editItem('company',${c.id})">Editar</button> <button class="btn small danger" onclick="del('companies',${c.id})">Excluir</button></td></tr>`;
 }
 function companyGroupTable(list,emptyMsg){
- return list.length?`<div class="card table-wrap"><table class="table companies-group-table"><thead><tr><th>Empresa</th><th>Cidade</th><th>Telefone</th><th>Segmento</th><th>Status</th><th>Origem</th><th>Última interação</th><th>Lead Score</th><th>Responsável</th><th>Ações</th></tr></thead><tbody>${list.map(companyRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
+ return list.length?`<div class="card table-wrap"><table class="table companies-group-table" data-table-group="empresas"><thead><tr><th data-col="0">Empresa</th><th data-col="1">Cidade</th><th data-col="2">Telefone</th><th data-col="3">Segmento</th><th data-col="4">Status</th><th data-col="5">Origem</th><th data-col="6">Última interação</th><th data-col="7">Lead Score</th><th data-col="8">Responsável</th><th data-col="9">Ações</th></tr></thead><tbody>${list.map(companyRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
 }
 let _companyFilters={search:'',origin:'',region:''};
 let _pageFilters={contatos:{search:''},oportunidades:{search:''},tarefas:{search:''},propostas:{search:'',status:''}};
@@ -1178,6 +1340,7 @@ function renderCompanies(){
  document.getElementById('companiesOriginSelect').value=_companyFilters.origin||'';
  document.getElementById('companiesRegionSelect').value=_companyFilters.region||'';
  applyCompanyFilters();
+ setupReorderableTables('empresas');
 }
 function showCompanyDetails(id){
  const c=data.companies.find(x=>x.id===id);
@@ -1321,9 +1484,10 @@ function quickLogContact(companyName,channel){
 }
 function renderContacts(){
  const rows=data.contacts.map(c=>`<tr class="ftxt-${followupClsByCompanyName(c.company)}"><td><b><a href="#" onclick="event.preventDefault();showContactDetails(${c.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(c.name)}</a></b></td><td>${esc(c.company)}</td><td>${esc(c.role)}</td><td>${esc(c.cel)}</td><td>${esc(c.tel)}</td><td>${esc(c.email)}</td><td>${whatsappBtn(c.cel,null,c.company,c.name)} ${callBtn(c.cel,'📞','Ligar celular',c.company,c.name)} ${callBtn(c.tel,'☎️','Ligar fixo',c.company,c.name)} <button class="btn small" onclick="editItem('contact',${c.id})">Editar</button> <button class="btn small danger" onclick="del('contacts',${c.id})">Excluir</button></td></tr>`).join('');
- document.getElementById('contatos').innerHTML=tablePage('Contatos','Pessoas, decisores e responsáveis técnicos/comerciais',`<button class="btn primary" onclick="openForm('contact')">＋ Novo contato</button>`,`<div class="toolbar"><input id="contactsSearchInput" placeholder="Pesquisar contato..." oninput="filterContactsSearch(this.value)"></div><div class="card table-wrap"><table class="table" id="contactsTable"><thead><tr><th>Nome</th><th>Empresa</th><th>Cargo</th><th>Celular</th><th>Telefone fixo</th><th>E-mail</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+ document.getElementById('contatos').innerHTML=tablePage('Contatos','Pessoas, decisores e responsáveis técnicos/comerciais',`<button class="btn primary" onclick="openForm('contact')">＋ Novo contato</button>`,`<div class="toolbar"><input id="contactsSearchInput" placeholder="Pesquisar contato..." oninput="filterContactsSearch(this.value)"></div><div class="card table-wrap"><table class="table" id="contactsTable" data-table-group="contatos"><thead><tr><th data-col="0">Nome</th><th data-col="1">Empresa</th><th data-col="2">Cargo</th><th data-col="3">Celular</th><th data-col="4">Telefone fixo</th><th data-col="5">E-mail</th><th data-col="6">Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`);
  document.getElementById('contactsSearchInput').value=_pageFilters.contatos.search||'';
  applyContactsFilter();
+ setupReorderableTables('contatos');
 }
 function applyContactsFilter(){
  const q=(_pageFilters.contatos.search||'').toLowerCase();
@@ -1334,7 +1498,7 @@ function dealRowHtml(d){
  return `<tr><td><b><a href="#" onclick="event.preventDefault();showCompanyDetailsByName('${String(d.company).replace(/'/g,"’")}')" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(d.company)}</a></b></td><td><b><a href="#" onclick="event.preventDefault();showDealDetails(${d.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(d.title)}</a></b></td><td>${money(d.value)}</td><td><span class="tag">${d.stage}</span></td><td>${d.prob}%</td><td>${d.priority}</td><td>${d.next}</td><td><button class="btn small" onclick="editItem('deal',${d.id})">Editar</button> <button class="btn small danger" onclick="del('deals',${d.id})">Excluir</button></td></tr>`;
 }
 function dealGroupTable(list,emptyMsg){
- return list.length?`<div class="card table-wrap"><table class="table"><thead><tr><th>Empresa</th><th>Oportunidade</th><th>Valor</th><th>Etapa</th><th>Prob.</th><th>Prioridade</th><th>Próximo passo</th><th>Ações</th></tr></thead><tbody>${list.map(dealRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
+ return list.length?`<div class="card table-wrap"><table class="table" data-table-group="oportunidades"><thead><tr><th data-col="0">Empresa</th><th data-col="1">Oportunidade</th><th data-col="2">Valor</th><th data-col="3">Etapa</th><th data-col="4">Prob.</th><th data-col="5">Prioridade</th><th data-col="6">Próximo passo</th><th data-col="7">Ações</th></tr></thead><tbody>${list.map(dealRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
 }
 function toggleClosedDeals(){toggleGroup('grp-deals-closed')}
 function filterDealsSearch(q){_pageFilters.oportunidades.search=q;filterGroupedSearch('oportunidades',q)}
@@ -1355,17 +1519,26 @@ function renderDeals(){
   ${groupSection('grp-deals-lost','❌','#dc2626','Perdidas',lost.length,dealGroupTable(lost,'Nenhuma oportunidade perdida.'))}`);
  document.getElementById('dealsSearchInput').value=_pageFilters.oportunidades.search||'';
  filterGroupedSearch('oportunidades',_pageFilters.oportunidades.search||'');
+ setupReorderableTables('oportunidades');
 }
 function renderPipeline(){
+ const prevPipelineEl=document.querySelector('#pipeline .pipeline');
+ const prevScrollLeft=prevPipelineEl?prevPipelineEl.scrollLeft:0;
  const isNew=d=>typeof d.id==='number' && (Date.now()-d.id)<600000;
  const contactHistoryAll=[...(data.contactHistory||[])].sort((a,b)=>(b.date+b.time)>(a.date+a.time)?1:-1);
  const CONTACT_COLUMN_LIMIT=100;
  const contactHistory=contactHistoryAll.slice(0,CONTACT_COLUMN_LIMIT);
- const contactColumn=`<div class="stage" style="background:#eef7f0"><h4>📞 Contato (Tel/WhatsApp)<span>${contactHistoryAll.length}</span></h4>${contactHistoryAll.length>CONTACT_COLUMN_LIMIT?`<div style="padding:6px 4px;color:#8a94a3;font-size:11px">Mostrando as ${CONTACT_COLUMN_LIMIT} mais recentes de ${contactHistoryAll.length}. Veja o histórico completo na ficha de cada empresa.</div>`:''}${contactHistory.length?contactHistory.map(h=>`<div class="deal" draggable="true" style="cursor:grab" ondragstart="event.dataTransfer.setData('text/plain','contact:${h.id}')" onclick="showCompanyDetailsByName('${String(h.company).replace(/'/g,"’")}')"><div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start"><div style="min-width:0"><b>${esc(h.company)}</b>${h.contactName?`<small>${esc(h.contactName)}</small>`:''}</div><div style="display:flex;gap:3px;align-items:center;flex-shrink:0"><span style="font-size:16px">${h.channel==='whatsapp'?'💬':h.channel==='telefone'?'☎️':'📇'}</span><button class="btn small danger" style="padding:4px 6px" title="Excluir" onclick="event.stopPropagation();del('contactHistory',${h.id})">🗑</button></div></div><small style="color:#59636f">${fmtDateBR(new Date(h.date+'T00:00:00'))} às ${h.time}</small><div style="display:flex;gap:3px;margin-top:6px">
+ const contactColumn=`<div class="stage" data-col-id="contato" style="background:#eef7f0"><h4 title="Arraste para reordenar a coluna">📞 Contato (Tel/WhatsApp)<span>${contactHistoryAll.length}</span></h4>${contactHistoryAll.length>CONTACT_COLUMN_LIMIT?`<div style="padding:6px 4px;color:#8a94a3;font-size:11px">Mostrando as ${CONTACT_COLUMN_LIMIT} mais recentes de ${contactHistoryAll.length}. Veja o histórico completo na ficha de cada empresa.</div>`:''}${contactHistory.length?contactHistory.map(h=>`<div class="deal" draggable="true" style="cursor:grab" ondragstart="event.dataTransfer.setData('text/plain','contact:${h.id}')" onclick="showCompanyDetailsByName('${String(h.company).replace(/'/g,"’")}')"><div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start"><div style="min-width:0"><b>${esc(h.company)}</b>${h.contactName?`<small>${esc(h.contactName)}</small>`:''}</div><div style="display:flex;gap:3px;align-items:center;flex-shrink:0"><span style="font-size:16px">${h.channel==='whatsapp'?'💬':h.channel==='telefone'?'☎️':'📇'}</span><button class="btn small danger" style="padding:4px 6px" title="Excluir" onclick="event.stopPropagation();del('contactHistory',${h.id})">🗑</button></div></div><small style="color:#59636f">${fmtDateBR(new Date(h.date+'T00:00:00'))} às ${h.time}</small><div style="display:flex;gap:3px;margin-top:6px">
    <button onclick="event.stopPropagation();quickSetOutcome(${h.id},'produtivo')" title="${h.outcome==='produtivo'&&h.reason?esc(h.reason)+' (toque para trocar o motivo)':'Toque para marcar como produtivo'}" style="border:1px solid ${h.outcome==='produtivo'?'#16a34a':'#e5e7eb'};background:${h.outcome==='produtivo'?'#e8f7ed':'#fff'};color:${h.outcome==='produtivo'?'#16a34a':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">✅ Produtivo</button>
    <button onclick="event.stopPropagation();quickSetOutcome(${h.id},'improdutivo')" title="${h.outcome==='improdutivo'&&h.reason?esc(h.reason)+' (toque para trocar o motivo)':'Toque para marcar como improdutivo'}" style="border:1px solid ${h.outcome==='improdutivo'?'#dc2626':'#e5e7eb'};background:${h.outcome==='improdutivo'?'#feecec':'#fff'};color:${h.outcome==='improdutivo'?'#dc2626':'#8a94a3'};border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">❌ Improdutivo</button>
-  </div>${h.reason?`<small style="color:#8a94a3;display:block;margin-top:4px">${esc(h.reason)}</small>`:''}</div>`).join(''):'<div style="padding:10px;color:#8a94a3;font-size:12.5px">Nenhuma ligação ou WhatsApp registrado ainda. Toda vez que você usar os botões 📞/💬 do CRM para uma empresa ou contato, o registro aparece aqui automaticamente.</div>'}<div style="padding:8px 4px 2px;color:#8a94a3;font-size:11px">💡 Arraste um card para uma etapa ao lado (ex: Reunião) para criar uma oportunidade a partir dele.</div></div>`;
- document.getElementById('pipeline').innerHTML=`<div class="page-head"><div><h1>Pipeline</h1><p>Arraste oportunidades entre as etapas para atualizar o funil — ou arraste um contato da coluna 📞 para criar uma oportunidade.</p></div><button class="btn primary" onclick="openForm('deal')">＋ Nova oportunidade</button></div><div class="pipeline">${contactColumn}${dealStages.map(s=>`<div class="stage" data-stage="${s}" ondragover="event.preventDefault();this.classList.add('drop-target')" ondragleave="this.classList.remove('drop-target')" ondrop="dropDeal(event,'${s}')"><h4>${s}<span>${data.deals.filter(d=>d.stage===s).length}</span></h4>${data.deals.filter(d=>d.stage===s).map(d=>`<div class="deal" draggable="true" style="${isNew(d)?'border:1px solid #16a34a;box-shadow:0 0 0 2px rgba(22,163,74,.15);':''}cursor:pointer" ondragstart="event.dataTransfer.setData('text/plain','deal:${d.id}')" onclick="showDealDetails(${d.id})"><div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start"><div style="min-width:0"><b>${esc(d.company)}</b>${isNew(d)?' <span class="tag green" style="font-size:10px">🆕 novo</span>':''}<small>${esc(d.title)}</small></div><div style="display:flex;gap:3px;flex-shrink:0"><button class="btn small" style="padding:4px 6px" title="Editar" onclick="event.stopPropagation();editItem('deal',${d.id})">✎</button><button class="btn small danger" style="padding:4px 6px" title="Excluir" onclick="event.stopPropagation();del('deals',${d.id})">🗑</button></div></div><div class="money">${money(d.value)}</div><small>${d.prob}% • ${d.priority}</small>${dealContactLine(d.company)}</div>`).join('')}</div>`).join('')}</div>`;
+  </div>${h.reason?`<small style="color:#8a94a3;display:block;margin-top:4px">${esc(h.reason)}</small>`:''}
+  <input type="text" value="${esc(h.observacao||'')}" placeholder="📝 Observação (opcional)..." onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter')this.blur()" onblur="event.stopPropagation();saveContactObservation(${h.id},this.value)" style="width:100%;margin-top:6px;border:1px solid #e5e7eb;border-radius:6px;padding:5px 7px;font-size:11.5px;box-sizing:border-box;font-family:inherit">
+  </div>`).join(''):'<div style="padding:10px;color:#8a94a3;font-size:12.5px">Nenhuma ligação ou WhatsApp registrado ainda. Toda vez que você usar os botões 📞/💬 do CRM para uma empresa ou contato, o registro aparece aqui automaticamente.</div>'}<div style="padding:8px 4px 2px;color:#8a94a3;font-size:11px">💡 Arraste um card para uma etapa ao lado (ex: Reunião) para criar uma oportunidade a partir dele.</div></div>`;
+ document.getElementById('pipeline').innerHTML=`<div class="page-head"><div><h1>Pipeline</h1><p>Arraste oportunidades entre as etapas para atualizar o funil — ou arraste o título de uma coluna para reordenar.</p></div><button class="btn primary" onclick="openForm('deal')">＋ Nova oportunidade</button></div><div class="pipeline">${contactColumn}${dealStages.map(s=>`<div class="stage" data-col-id="${esc(s)}" data-stage="${s}" ondragover="event.preventDefault();this.classList.add('drop-target')" ondragleave="this.classList.remove('drop-target')" ondrop="dropDeal(event,'${s}')"><h4 title="Arraste para reordenar a coluna">${s}<span>${data.deals.filter(d=>d.stage===s).length}</span></h4>${data.deals.filter(d=>d.stage===s).map(d=>`<div class="deal" draggable="true" style="${isNew(d)?'border:1px solid #16a34a;box-shadow:0 0 0 2px rgba(22,163,74,.15);':''}cursor:pointer" ondragstart="event.dataTransfer.setData('text/plain','deal:${d.id}')" onclick="showDealDetails(${d.id})"><div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start"><div style="min-width:0"><b>${esc(d.company)}</b>${isNew(d)?' <span class="tag green" style="font-size:10px">🆕 novo</span>':''}<small>${esc(d.title)}</small></div><div style="display:flex;gap:3px;flex-shrink:0"><button class="btn small" style="padding:4px 6px" title="Editar" onclick="event.stopPropagation();editItem('deal',${d.id})">✎</button><button class="btn small danger" style="padding:4px 6px" title="Excluir" onclick="event.stopPropagation();del('deals',${d.id})">🗑</button></div></div><div class="money">${money(d.value)}</div><small>${d.prob}% • ${d.priority}</small>${dealContactLine(d.company)}</div>`).join('')}</div>`).join('')}</div>`;
+ applyPipelineColumnOrder();
+ initPipelineColumnReorder();
+ const newPipelineEl=document.querySelector('#pipeline .pipeline');
+ if(newPipelineEl)newPipelineEl.scrollLeft=prevScrollLeft;
 }
 function resolveTaskContact(t){
  if(!t.contact)return null;
@@ -1465,7 +1638,7 @@ function taskRowHtml(t){
  return `<tr><td>${t.date}</td><td>${t.time}</td><td>${t.company?`<small style="display:block;color:#8a94a3;font-weight:600">${esc(t.company)}</small>`:''}<b><a href="#" onclick="event.preventDefault();showTaskDetails(${t.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(t.title)}</a></b></td><td>${esc(t.company)}</td><td>${esc(contactName)}</td><td>${esc(cel||tel)}</td><td>${t.type}</td><td>${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)} <button class="btn small success" onclick="completeTask(${t.id})">${t.status==='Concluída'?'Reabrir':'Concluir'}</button> <button class="btn small" onclick="editItem('task',${t.id})">Editar</button>${t.status==='Concluída'?` <button class="btn small danger" onclick="del('tasks',${t.id})">Excluir</button>`:''}</td></tr>`;
 }
 function taskGroupTable(list,emptyMsg){
- return list.length?`<div class="card table-wrap"><table class="table"><thead><tr><th>Data</th><th>Hora</th><th>Tarefa</th><th>Empresa</th><th>Contato</th><th>Tel</th><th>Tipo</th><th>Ações</th></tr></thead><tbody>${list.map(taskRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
+ return list.length?`<div class="card table-wrap"><table class="table" data-table-group="tarefas"><thead><tr><th data-col="0">Data</th><th data-col="1">Hora</th><th data-col="2">Tarefa</th><th data-col="3">Empresa</th><th data-col="4">Contato</th><th data-col="5">Tel</th><th data-col="6">Tipo</th><th data-col="7">Ações</th></tr></thead><tbody>${list.map(taskRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
 }
 function toggleDoneTasks(){toggleGroup('grp-tasks-done')}
 function filterTasksSearch(q){_pageFilters.tarefas.search=q;filterGroupedSearch('tarefas',q)}
@@ -1485,6 +1658,7 @@ function renderTasks(){
  ${groupSection('grp-tasks-done','✅','#667085','Concluídas',done.length,taskGroupTable(doneSorted,'Nenhuma tarefa concluída ainda.'))}`);
  document.getElementById('tasksSearchInput').value=_pageFilters.tarefas.search||'';
  filterGroupedSearch('tarefas',_pageFilters.tarefas.search||'');
+ setupReorderableTables('tarefas');
 }
 function showTaskDetails(id){
  const t=data.tasks.find(x=>x.id===id);
@@ -1539,10 +1713,11 @@ function renderProposals(){
  document.getElementById('propostas').innerHTML=tablePage('Propostas','Criação, acompanhamento e vencimento de propostas',`<button class="btn primary" onclick="openForm('proposal')">＋ Nova proposta</button>`,
  `<div class="grid stat-grid" style="margin-bottom:14px">${reportCard('Total de propostas',total,"openDashboardDetails('allProposals')")}${reportCard('Valor total em propostas',money(totalValue),"openDashboardDetails('proposalsValue')")}${reportCard('⚠️ Vencendo (7 dias)',vencendo,"openDashboardDetails('proposalsVencendo')")}${reportCard('⛔ Vencidas',vencidas,"openDashboardDetails('proposalsVencidas')")}</div>
  <div class="toolbar"><input id="proposalsSearchInput" placeholder="Pesquisar proposta..." oninput="filterProposalsSearch(this.value)"><select id="proposalsStatusSelect" onchange="filterProposalsStatus(this.value)"><option value="">Todos os status</option><option value="Vencida">⚠️ Vencidas</option><option value="Vencendo">⚠️ Vencendo (7 dias)</option><option value="Rascunho">Rascunho</option><option value="Enviada">Enviada</option><option value="Aguardando">Aguardando</option><option value="Aprovada">Aprovada</option><option value="Recusada">Recusada</option></select></div>
- <div class="card table-wrap"><table class="table" id="proposalsTable"><thead><tr><th>Empresa</th><th>Produto/Serviço</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+ <div class="card table-wrap"><table class="table" id="proposalsTable" data-table-group="propostas"><thead><tr><th data-col="0">Empresa</th><th data-col="1">Produto/Serviço</th><th data-col="2">Valor</th><th data-col="3">Vencimento</th><th data-col="4">Status</th><th data-col="5">Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`);
  document.getElementById('proposalsSearchInput').value=_pageFilters.propostas.search||'';
  document.getElementById('proposalsStatusSelect').value=_pageFilters.propostas.status||'';
  applyProposalsFilter();
+ setupReorderableTables('propostas');
 }
 function applyProposalsFilter(){
  const q=(_pageFilters.propostas.search||'').toLowerCase();
@@ -1557,7 +1732,8 @@ function filterProposalsSearch(q){_pageFilters.propostas.search=q;applyProposals
 function filterProposalsStatus(v){_pageFilters.propostas.status=v;applyProposalsFilter()}
 function renderProducts(){
  const rows=data.products.map(p=>`<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.category)}</td><td>${money(p.price)}</td><td><span class="tag green">${p.active}</span></td><td><button class="btn small" onclick="editItem('product',${p.id})">Editar</button> <button class="btn small danger" onclick="del('products',${p.id})">Excluir</button></td></tr>`).join('');
- document.getElementById('produtos').innerHTML=tablePage('Produtos','Catálogo comercial de conectividade e serviços',`<button class="btn primary" onclick="openForm('product')">＋ Novo produto</button>`,`<div class="card table-wrap"><table class="table"><thead><tr><th>Produto</th><th>Categoria</th><th>Preço</th><th>Ativo</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+ document.getElementById('produtos').innerHTML=tablePage('Produtos','Catálogo comercial de conectividade e serviços',`<button class="btn primary" onclick="openForm('product')">＋ Novo produto</button>`,`<div class="card table-wrap"><table class="table" data-table-group="produtos"><thead><tr><th data-col="0">Produto</th><th data-col="1">Categoria</th><th data-col="2">Preço</th><th data-col="3">Ativo</th><th data-col="4">Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+ setupReorderableTables('produtos');
 }
 function renderAgenda(){
  const ds=[];const d=new Date();d.setDate(1);for(let i=0;i<35;i++){const x=new Date(d);x.setDate(i+1);ds.push(x)}
@@ -1768,6 +1944,7 @@ function renderIntelligence(){
 <p style="margin:0 0 10px;padding:10px 12px;background:#fff5df;border-radius:8px;font-size:12.5px;color:#7a5c00">⚠️ <b>Contexto de mercado — Duque de Caxias:</b> investigação recente aponta o Comando Vermelho extorquindo e sabotando provedores na cidade para controlar o mercado de internet local. Pode significar provedores buscando alternativas mais estáveis, mas também exige cautela na abordagem em áreas de risco — avalie caso a caso antes de agendar visitas presenciais.</p>
 <p style="margin:0 0 10px;padding:10px 12px;background:#e8f7ed;border-radius:8px;font-size:12.5px;color:#16a34a">📈 <b>Contexto de mercado — Cabo Frio:</b> cidade lidera a Região dos Lagos em abertura de novas empresas (+31,8% em jul/2026 vs. jul/2025), mercado local aquecido — mais demanda de banda para os provedores da região tende a significar necessidade de mais capacidade de link.</p>
 <p style="margin:0 0 10px;padding:10px 12px;background:#eef5ff;border-radius:8px;font-size:12.5px;color:#2863a6">🔄 <b>Contexto de mercado — Estado do RJ:</b> reportagem do setor (TELETIME, ago/2026) confirma que a consolidação de provedores independentes segue forte — fundos comprando operações menores para ganhar escala, com pressão regulatória crescente da Anatel. Provedores médios sem escala tendem a buscar parcerias de link mais competitivas para não precisar vender o negócio.</p>
+<p style="margin:0 0 10px;padding:10px 12px;background:#fdf2f8;border-radius:8px;font-size:12.5px;color:#9d174d">📋 <b>Contexto de mercado — Regularização Anatel (sinal forte, estado inteiro):</b> desde out/2025, a Anatel exige outorga formal de TODO provedor (fim da dispensa para quem tinha até 5 mil acessos) e determinou que as empresas de atacado/backhaul <b>parem de fornecer link para quem não tiver outorga</b>. No RJ, 912 de 1.734 provedores operavam sem outorga; nacionalmente 5.357 ainda não tinham regularizado na véspera do prazo. A regularização seguiu crescendo mês a mês em 2026 — provedores recém-regularizados são candidatos fortes a estarem sem fornecedor de atacado fechado ou revisando o atual. Fonte: Anatel, TELETIME (28/10/2025), Convergência Digital (mai/2026).</p>
 ${Object.keys(radarByRegion).sort().map(region=>`<div style="margin-top:8px"><b style="font-size:13px">${esc(region)}</b> <span style="color:#8a94a3;font-size:12px">(${radarByRegion[region].length})</span>${radarByRegion[region].map(r=>`<div class="list-row"><div class="row-main"><b>${esc(r.name)}</b><small>${esc(r.city)} — ${esc(r.note)}</small></div></div>`).join('')}</div>`).join('')||''}
 </div>`;
 }
