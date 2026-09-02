@@ -113,7 +113,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
     </div>
   </div>
 </div>
-<div class="modal" id="confirmModal"><div class="modal-box" style="max-width:380px"><div class="modal-body" style="text-align:center;padding:30px 22px 10px"><div style="font-size:34px;margin-bottom:12px">⚠️</div><p id="confirmMessage" style="margin:0;font-weight:700;font-size:15px"></p></div><div class="modal-foot"><button class="btn" onclick="closeConfirm()">Cancelar</button><button class="btn danger" id="confirmOkBtn">Excluir</button></div></div></div>
+<div class="modal" id="confirmModal"><div class="modal-box" style="max-width:380px"><div class="modal-body" style="text-align:center;padding:30px 22px 10px"><div style="font-size:34px;margin-bottom:12px">⚠️</div><p id="confirmMessage" style="margin:0;font-weight:700;font-size:15px;white-space:pre-wrap"></p></div><div class="modal-foot"><button class="btn" onclick="closeConfirm()">Cancelar</button><button class="btn danger" id="confirmOkBtn">Excluir</button></div></div></div>
 <div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><b id="modalTitle">Novo registro</b><button class="icon-btn" onclick="closeModal()">✕</button></div><div class="modal-body" id="modalBody"></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="modalSave">Salvar</button></div></div></div>
 <div class="modal" id="companyDetailModal"><div class="modal-box"><div class="modal-head"><b id="companyDetailTitle">Detalhes da empresa</b><button class="icon-btn" onclick="closeCompanyDetails()">✕</button></div><div class="modal-body" id="companyDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeCompanyDetails()">Fechar</button><button class="btn" id="companyDetailTaskBtn">📅 Tarefa</button><button class="btn" id="companyDetailProposalBtn">📄 Proposta</button><button class="btn" id="companyDetailDealBtn">💼 Oportunidade</button><button class="btn danger" id="companyDetailDeleteBtn">🗑 Excluir</button><button class="btn primary" id="companyDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="taskDetailModal"><div class="modal-box"><div class="modal-head"><b id="taskDetailTitle">Detalhes da tarefa</b><button class="icon-btn" onclick="closeTaskDetails()">✕</button></div><div class="modal-body" id="taskDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeTaskDetails()">Fechar</button><button class="btn" id="taskDetailConvertBtn" style="display:none">💼 Converter em Oportunidade</button><button class="btn danger" id="taskDetailDeleteBtn">🗑 Excluir</button><button class="btn primary" id="taskDetailEditBtn">Editar</button></div></div></div>
@@ -125,7 +125,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 
 <script>
 const KEY='isp_sales_crm_v1';
-const APP_BUILD='v15.66 · 2026-08-30 · Corrigido bug do Pipeline: mover um card entre colunas não faz mais a tela "pular" de volta pra coluna de Contato (a posição de rolagem agora é preservada). Cards da coluna 📞 Contato ganharam campo de observação livre — digite o motivo de ter sido produtivo/improdutivo e ele fica salvo (Enter ou clicar fora pra confirmar)';
+const APP_BUILD='v15.68 · 2026-08-30 · Proteção contra perda de dados na sincronização: a busca automática (a cada 15s) NUNCA MAIS aplica sozinha uma versão da nuvem que tenha menos empresas/contatos/oportunidades/tarefas/propostas do que o aparelho já tem agora — só avisa, sem mexer em nada. E o botão manual "Buscar da nuvem" agora mostra um aviso forte (⚠️ ATENÇÃO) quando isso acontece, antes de você confirmar a importação';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -594,6 +594,20 @@ function flushPendingPushNow(){
  _cloudPushTimer=null;
  pushToCloud(true);
 }
+// Proteção contra perda de dados: nunca aplicar automaticamente (nem deixar
+// passar batido no manual) uma versão da nuvem que tenha MENOS registros do
+// que já existe neste dispositivo agora — isso teria evitado o incidente de
+// 02/09, em que um dia inteiro de trabalho foi sobrescrito silenciosamente.
+function compareDataCounts(local,incoming){
+ const keys=[['companies','empresas'],['contacts','contatos'],['deals','oportunidades'],['tasks','tarefas'],['proposals','propostas'],['contactHistory','registros de contato (ligação/WhatsApp)']];
+ const shrinking=[];
+ keys.forEach(([k,label])=>{
+  const localArr=Array.isArray(local?.[k])?local[k]:[];
+  const incomingArr=Array.isArray(incoming?.[k])?incoming[k]:[];
+  if(incomingArr.length<localArr.length)shrinking.push(label+': '+localArr.length+' → '+incomingArr.length);
+ });
+ return shrinking;
+}
 async function pullFromCloud(mode){
  // mode: false/undefined = manual (pede confirmação), true = checagem antiga (compat), 'auto' = automático silencioso
  const client=getSyncClient();
@@ -605,11 +619,18 @@ async function pullFromCloud(mode){
   if(!row){if(mode===false)toast('Nenhum dado encontrado na nuvem para este código de sincronização ainda');return}
   const localLast=localStorage.getItem(SYNC_LAST_KEY);
   const isNewer=!localLast||new Date(row.updated_at)>new Date(localLast);
+  const shrinkWarnings=compareDataCounts(data,row.payload);
   if(mode==='auto'){
    if(!isNewer)return;
    if(document.querySelector('.modal.open'))return; // não interromper edição em andamento
    if(_cloudPushTimer)return; // há alteração local pendente de envio, espera terminar
    if(localStorage.getItem(SYNC_PENDING_KEY))return; // há alteração local ainda não confirmada na nuvem (mesmo após reabrir o app) — nunca sobrescrever
+   if(shrinkWarnings.length){
+    // a versão da nuvem tem menos registros que o dispositivo agora — nunca aplicar sozinho,
+    // por mais "mais nova" que a nuvem pareça ser pela data. Só avisa, não mexe em nada.
+    toast('⚠️ Há uma versão na nuvem, mas com menos dados que este aparelho agora ('+shrinkWarnings[0]+'). Não apliquei automaticamente — confira em Configurações antes de importar manualmente.');
+    return;
+   }
    _suppressCloudPush=true;
    data=row.payload;
    save();
@@ -622,7 +643,11 @@ async function pullFromCloud(mode){
    if(isNewer)toast('Há dados mais novos na nuvem — toque em "Buscar da nuvem" em Configurações para atualizar');
    return;
   }
-  showConfirm('Importar dados da nuvem (atualizados em '+new Date(row.updated_at).toLocaleString('pt-BR')+')? Isso substituirá os dados deste dispositivo (um backup de segurança será baixado antes).',()=>{
+  const baseMsg='Importar dados da nuvem (atualizados em '+new Date(row.updated_at).toLocaleString('pt-BR')+')? Isso substituirá os dados deste dispositivo (um backup de segurança será baixado antes).';
+  const msg=shrinkWarnings.length
+   ?'⚠️ ATENÇÃO: a versão da nuvem tem MENOS dados do que você tem agora neste dispositivo — '+shrinkWarnings.join(', ')+'. Importar pode apagar trabalho recente ainda não sincronizado. Confira se não é isso antes de continuar.\n\n'+baseMsg
+   :baseMsg;
+  showConfirm(msg,()=>{
    silentBackup();
    _suppressCloudPush=true;
    data=row.payload;
@@ -1423,7 +1448,8 @@ function showDealDetails(id){
  if(!d)return;
  const company=data.companies.find(x=>x.name===d.company);
  const contacts=data.contacts.filter(x=>x.company===d.company);
- const mainContact=contacts[0];
+ const chosenContact=d.contact?String(d.contact).split(' — ')[0]:null;
+ const mainContact=(chosenContact&&contacts.find(c=>c.name===chosenContact))||contacts[0];
  const cel=mainContact?.cel||'',tel=mainContact?.tel||company?.phone||'';
  document.getElementById('dealDetailTitle').textContent=d.title;
  const field=(label,value)=>`<div class="field"><label>${label}</label><div style="padding:8px 0;font-weight:600">${value?esc(value):'<span style=\"color:#8a94a3;font-weight:400\">Não informado</span>'}</div></div>`;
@@ -2225,19 +2251,29 @@ function closeDashboardDetails(){
 function quickTask(companyName){openForm('task',null,{company:companyName})}
 function quickProposal(companyName){openForm('proposal',null,{company:companyName})}
 function quickDeal(companyName){openForm('deal',null,{company:companyName})}
+function contactDatalistOptions(companyName){
+ const name=String(companyName||'').trim();
+ const list=name?data.contacts.filter(c=>c.company===name):[];
+ return [...list].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(c=>`<option value="${esc(c.name+' — '+c.company)}">${esc(c.cel||c.tel||'')}</option>`).join('');
+}
+function refreshContactDatalist(){
+ const dl=document.getElementById('contactDatalist');
+ if(!dl)return;
+ dl.innerHTML=contactDatalistOptions(document.getElementById('f_company')?.value);
+}
 function openForm(type,id=null,prefill=null){
  const edit=id?getItem(type,id):null;
  const defs={
  company:{title:edit?'Editar empresa':'Nova empresa',collection:'companies',fields:[['name','Empresa','text',edit?.name||''],['cnpj','CNPJ','text',edit?.cnpj||''],['city','Cidade','text',edit?.city||''],['phone','Telefone','text',edit?.phone||''],['address','Endereço','text',edit?.address||''],['email','E-mail','email',edit?.email||''],['segment','Segmento','text',edit?.segment||'ISP'],['status','Status','select',edit?.status||'Lead',stages],['origin','Origem','select',edit?.origin||'Captação de lead',origins],['leadScore','Lead Score (0-100)','number',edit?.leadScore??50],['owner','Responsável','text',edit?.owner||'Fábio Chiesa'],['notes','Observação','textarea',edit?.notes||'']]},
  contact:{title:edit?'Editar contato':'Novo contato',collection:'contacts',fields:[['name','Nome','text',edit?.name||''],['company','Empresa','company-select',edit?.company||prefill?.company||''],['role','Cargo','text',edit?.role||''],['cel','Celular (WhatsApp)','text',edit?.cel||''],['tel','Telefone fixo','text',edit?.tel||''],['email','E-mail','email',edit?.email||'']]},
- deal:{title:edit?'Editar oportunidade':'Nova oportunidade',collection:'deals',fields:[['company','Empresa','company-select',edit?.company||prefill?.company||''],['title','Oportunidade','text',edit?.title||''],['value','Valor','number',edit?.value||0],['stage','Etapa','select',edit?.stage||'Lead',dealStages],['prob','Probabilidade (%)','number',edit?.prob||20],['priority','Prioridade','select',edit?.priority||'Média',['Alta','Média','Baixa']],['next','Próximo passo','date',edit?.next||today()],['notes','Observação comercial','textarea',edit?.notes||'']]},
+ deal:{title:edit?'Editar oportunidade':'Nova oportunidade',collection:'deals',fields:[['company','Empresa','company-select',edit?.company||prefill?.company||''],['title','Oportunidade','text',edit?.title||''],['contact','Contato','contact-select',edit?.contact||''],['value','Valor','number',edit?.value||0],['stage','Etapa','select',edit?.stage||'Lead',dealStages],['prob','Probabilidade (%)','number',edit?.prob||20],['priority','Prioridade','select',edit?.priority||'Média',['Alta','Média','Baixa']],['next','Próximo passo','date',edit?.next||today()],['notes','Observação comercial','textarea',edit?.notes||'']]},
  task:{title:edit?'Editar tarefa':'Nova tarefa',collection:'tasks',fields:[['title','Tarefa','text',edit?.title||''],['company','Empresa','company-select',edit?.company||prefill?.company||''],['contact','Contato','contact-select',edit?.contact||''],['date','Data','date',edit?.date||today()],['time','Hora','time',edit?.time||'09:00'],['type','Tipo','select',edit?.type||prefill?.type||'Ligação',['Ligação','E-mail','Reunião','WhatsApp','Tarefa','Nota']],['status','Status','select',edit?.status||'Pendente',['Pendente','Concluída']]]},
  proposal:{title:edit?'Editar proposta':'Nova proposta',collection:'proposals',fields:[['company','Empresa','company-select',edit?.company||prefill?.company||''],['item','Produto/Serviço','text',edit?.item||''],['value','Valor','number',edit?.value||0],['date','Vencimento','date',edit?.date||today()],['status','Status','select',edit?.status||'Rascunho',['Rascunho','Enviada','Aguardando','Aprovada','Recusada']]]},
  product:{title:edit?'Editar produto':'Novo produto',collection:'products',fields:[['name','Produto','text',edit?.name||''],['category','Categoria','text',edit?.category||''],['price','Preço','number',edit?.price||0],['active','Ativo','select',edit?.active||'Sim',['Sim','Não']]]},
  event:{title:'Agendar reunião',collection:'events',fields:[['title','Título','text','Reunião comercial'],['company','Empresa','company-select',''],['date','Data','date',today()],['time','Hora','time','14:00']]}
  };
  const d=defs[type];document.getElementById('modalTitle').textContent=d.title;
- document.getElementById('modalBody').innerHTML=`<div class="form-grid">${d.fields.map(f=>{ if(f[2]==='select') return `<div class="field"><label>${f[1]}</label><select id="f_${f[0]}">${f[4].map(o=>`<option ${o===f[3]?'selected':''}>${o}</option>`).join('')}</select></div>`; if(f[2]==='company-select'){ return `<div class="field"><label>${f[1]} <a href="#" onclick="event.preventDefault();quickAddCompany('${type}',${id?id:'null'})" style="font-size:12px;font-weight:600;color:#3b82f6;margin-left:8px">＋ Nova empresa</a></label><input id="f_${f[0]}" list="companyDatalist" autocomplete="off" placeholder="Digite para buscar uma empresa..." value="${esc(f[3]||'')}"></div>`;} if(f[2]==='contact-select'){ return `<div class="field"><label>${f[1]}</label><input id="f_${f[0]}" list="contactDatalist" autocomplete="off" placeholder="Digite para buscar um contato..." value="${esc(f[3]||'')}"></div>`;} if(f[2]==='textarea'){ return `<div class="field" style="grid-column:1/-1"><label>${f[1]}</label><textarea id="f_${f[0]}" rows="3" style="width:100%;resize:vertical">${esc(f[3]||'')}</textarea></div>`;} return `<div class="field"><label>${f[1]}</label><input id="f_${f[0]}" type="${f[2]}" value="${esc(f[3])}" ${['phone','cel','tel'].includes(f[0])?`onblur="this.value=formatPhoneBR(this.value)" placeholder="(21) 99999-9999"`:''}></div>`; }).join('')}</div><datalist id="companyDatalist">${[...data.companies].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(c=>`<option value="${esc(c.name)}">${c.city?esc(c.city):''}</option>`).join('')}</datalist><datalist id="contactDatalist">${[...data.contacts].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(c=>`<option value="${esc(c.name+' — '+c.company)}">${esc(c.cel||c.tel||'')}</option>`).join('')}</datalist>${type==='company'&&id?companyContactsPanel(edit?.name||'',id):''}`;
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid">${d.fields.map(f=>{ if(f[2]==='select') return `<div class="field"><label>${f[1]}</label><select id="f_${f[0]}">${f[4].map(o=>`<option ${o===f[3]?'selected':''}>${o}</option>`).join('')}</select></div>`; if(f[2]==='company-select'){ return `<div class="field"><label>${f[1]} <a href="#" onclick="event.preventDefault();quickAddCompany('${type}',${id?id:'null'})" style="font-size:12px;font-weight:600;color:#3b82f6;margin-left:8px">＋ Nova empresa</a></label><input id="f_${f[0]}" list="companyDatalist" autocomplete="off" placeholder="Digite para buscar uma empresa..." value="${esc(f[3]||'')}" oninput="refreshContactDatalist()"></div>`;} if(f[2]==='contact-select'){ return `<div class="field"><label>${f[1]}</label><input id="f_${f[0]}" list="contactDatalist" autocomplete="off" placeholder="Digite o nome da empresa acima primeiro..." value="${esc(f[3]||'')}"></div>`;} if(f[2]==='textarea'){ return `<div class="field" style="grid-column:1/-1"><label>${f[1]}</label><textarea id="f_${f[0]}" rows="3" style="width:100%;resize:vertical">${esc(f[3]||'')}</textarea></div>`;} return `<div class="field"><label>${f[1]}</label><input id="f_${f[0]}" type="${f[2]}" value="${esc(f[3])}" ${['phone','cel','tel'].includes(f[0])?`onblur="this.value=formatPhoneBR(this.value)" placeholder="(21) 99999-9999"`:''}></div>`; }).join('')}</div><datalist id="companyDatalist">${[...data.companies].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(c=>`<option value="${esc(c.name)}">${c.city?esc(c.city):''}</option>`).join('')}</datalist><datalist id="contactDatalist">${contactDatalistOptions(edit?.company||prefill?.company||'')}</datalist>${type==='company'&&id?companyContactsPanel(edit?.name||'',id):''}`;
  document.getElementById('modalSave').onclick=()=>saveForm(type,d.collection,id);
  document.getElementById('modal').classList.add('open');
 }
@@ -2278,7 +2314,7 @@ function handleDealAutomation(deal, previousStage, isNew){
 }
 function completeTask(id){const t=data.tasks.find(x=>x.id===id);if(t){t.status=t.status==='Concluída'?'Pendente':'Concluída';if(t.status==='Concluída' && t.dealId){const d=data.deals.find(x=>x.id===t.dealId);if(d){const next=new Date();next.setDate(next.getDate()+2);d.next=next.toISOString().slice(0,10)}}save();toast(t.status==='Concluída'?'Tarefa concluída':'Tarefa reaberta')}}
 function saveForm(type,collection,id){
- const defs={company:['name','cnpj','city','phone','address','email','segment','status','origin','leadScore','owner','notes'],contact:['name','company','role','cel','tel','email'],deal:['company','title','value','stage','prob','priority','next','notes'],task:['title','company','contact','date','time','type','status'],proposal:['company','item','value','date','status'],product:['name','category','price','active'],event:['title','company','date','time']};
+ const defs={company:['name','cnpj','city','phone','address','email','segment','status','origin','leadScore','owner','notes'],contact:['name','company','role','cel','tel','email'],deal:['company','title','contact','value','stage','prob','priority','next','notes'],task:['title','company','contact','date','time','type','status'],proposal:['company','item','value','date','status'],product:['name','category','price','active'],event:['title','company','date','time']};
  const obj={};defs[type].forEach(k=>{let v=document.getElementById('f_'+k)?.value??'';if(['value','prob','price','leadScore'].includes(k))v=Number(v);obj[k]=v});
  if(type==='company' && obj.phone)obj.phone=formatPhoneBR(obj.phone);
  if(type==='contact'){if(obj.cel)obj.cel=formatPhoneBR(obj.cel);if(obj.tel)obj.tel=formatPhoneBR(obj.tel)}
