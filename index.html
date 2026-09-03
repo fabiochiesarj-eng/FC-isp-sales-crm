@@ -169,7 +169,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v15.83 · 2026-08-30 · Novo painel "📋 Histórico de resultados de tarefas" em Relatórios, reunindo tudo que já foi registrado em "O que aconteceu" — toque em qualquer item pra abrir a tarefa. E agora, ao criar uma nova tarefa para uma empresa que já teve resultado registrado antes, o formulário mostra automaticamente o que aconteceu da última vez, pra manter o fio da negociação';
+const APP_BUILD='v15.85 · 2026-08-30 · Corrigido: criar uma Proposta agora reflete de verdade no Pipeline — se a empresa não tem nenhuma oportunidade aberta, cria uma automaticamente na etapa "Proposta"; se já tem uma em etapa anterior (Lead, Qualificação, etc), avança ela para "Proposta"; se já estiver mais avançada (Negociação, etc), não mexe (nunca regride nem duplica)';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -2040,7 +2040,39 @@ function renderIntelligence(){
 <p style="margin:0 0 10px;padding:10px 12px;background:#eef5ff;border-radius:8px;font-size:12.5px;color:#2863a6">🔄 <b>Contexto de mercado — Estado do RJ:</b> reportagem do setor (TELETIME, ago/2026) confirma que a consolidação de provedores independentes segue forte — fundos comprando operações menores para ganhar escala, com pressão regulatória crescente da Anatel. Provedores médios sem escala tendem a buscar parcerias de link mais competitivas para não precisar vender o negócio.</p>
 <p style="margin:0 0 10px;padding:10px 12px;background:#fdf2f8;border-radius:8px;font-size:12.5px;color:#9d174d">📋 <b>Contexto de mercado — Regularização Anatel (sinal forte, estado inteiro):</b> desde out/2025, a Anatel exige outorga formal de TODO provedor (fim da dispensa para quem tinha até 5 mil acessos) e determinou que as empresas de atacado/backhaul <b>parem de fornecer link para quem não tiver outorga</b>. No RJ, 912 de 1.734 provedores operavam sem outorga; nacionalmente 5.357 ainda não tinham regularizado na véspera do prazo. A regularização seguiu crescendo mês a mês em 2026 — provedores recém-regularizados são candidatos fortes a estarem sem fornecedor de atacado fechado ou revisando o atual. Fonte: Anatel, TELETIME (28/10/2025), Convergência Digital (mai/2026).</p>
 ${Object.keys(radarByRegion).sort().map(region=>`<div style="margin-top:8px"><b style="font-size:13px">${esc(region)}</b> <span style="color:#8a94a3;font-size:12px">(${radarByRegion[region].length})</span>${radarByRegion[region].map(r=>`<div class="list-row"><div class="row-main"><b>${esc(r.name)}</b><small>${esc(r.city)} — ${esc(r.note)}</small></div></div>`).join('')}</div>`).join('')||''}
-</div>`;
+</div>${lossReasonsPanel()}`;
+}
+function lossReasonsPanel(){
+ const lost=data.deals.filter(d=>d.stage==='Perdido');
+ if(!lost.length)return '';
+ const withReason=lost.filter(d=>d.lossReason);
+ const byReason={};
+ withReason.forEach(d=>{
+  byReason[d.lossReason]=byReason[d.lossReason]||{count:0,value:0};
+  byReason[d.lossReason].count++;
+  byReason[d.lossReason].value+=Number(d.value||0);
+ });
+ const sorted=Object.entries(byReason).sort((a,b)=>b[1].count-a[1].count);
+ const totalValue=withReason.reduce((a,d)=>a+Number(d.value||0),0);
+ const noReasonCount=lost.length-withReason.length;
+ const rows=sorted.map(([reason,stats])=>{
+  const pct=Math.round(stats.count/withReason.length*100);
+  return `<div class="list-row" style="cursor:pointer" onclick="showLossReasonDetail('${String(reason).replace(/'/g,"’")}')"><div class="row-main"><b>${esc(reason)}</b><small>${stats.count} oportunidade(s) · ${money(stats.value)} perdidos</small></div><div class="bar" style="width:110px"><i style="width:${pct}%"></i></div><b>${pct}%</b></div>`;
+ }).join('');
+ return `<div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>📉 Por que estou perdendo negócios</h3></div>
+ <p style="margin:0 0 10px;color:#667085;font-size:13px">${withReason.length} de ${lost.length} oportunidade(s) perdida(s) têm motivo registrado — total perdido: ${money(totalValue)}.${withReason.length<10?' <b>Ainda é pouco dado</b> pra confiar num padrão forte; o painel fica mais útil conforme você for registrando o motivo ao perder oportunidades no Pipeline.':''} Toque num motivo pra ver quais oportunidades foram.</p>
+ ${rows||'<p style="color:#8a94a3;padding:6px 0">Nenhuma perda com motivo registrado ainda.</p>'}
+ ${noReasonCount?`<p style="margin:10px 0 0;color:#8a94a3;font-size:12px">${noReasonCount} oportunidade(s) perdida(s) sem motivo registrado (perdidas antes de termos essa pergunta, ou puladas na hora).</p>`:''}
+ </div>`;
+}
+function showLossReasonDetail(reason){
+ const items=data.deals.filter(d=>d.stage==='Perdido'&&d.lossReason===reason).sort((a,b)=>b.value-a.value);
+ document.getElementById('dashboardDetailTitle').textContent='Perdidas por: '+reason;
+ document.getElementById('dashboardDetailBody').innerHTML=items.length?items.map(d=>detailItem('Perdido',d.company,d.title,`<b>${money(d.value)}</b>`)).join(''):emptyDetail('Nenhuma oportunidade encontrada.');
+ const action=document.getElementById('dashboardDetailAction');
+ action.textContent='Ir para Oportunidades';
+ action.onclick=()=>{closeDashboardDetails();showPage('oportunidades')};
+ document.getElementById('dashboardDetailModal').classList.add('open');
 }
 function renderConfig(){
  const _sc=getSyncConfig()||{};
@@ -2369,8 +2401,25 @@ function scheduleNextStepForDeal(deal, oldStage, isNew){
  const d=new Date(); d.setDate(d.getDate()+days);
  data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),dealId:deal.id,title:'Follow-up: '+deal.title,company:deal.company,date:d.toISOString().slice(0,10),time:'09:00',type:deal.stage==='Proposta'?'Ligação':'Tarefa',status:'Pendente'});
 }
-function handleProposalAutomation(proposal,previousStatus){
- if(!proposal)return;
+function syncDealForProposal(proposal){
+ if(!proposal||!proposal.company)return '';
+ const proposalIdx=stages.indexOf('Proposta');
+ const openDeal=data.deals.find(d=>d.company===proposal.company&&d.stage!=='Fechado'&&d.stage!=='Perdido');
+ if(openDeal){
+  const currentIdx=stages.indexOf(openDeal.stage);
+  if(currentIdx>=0&&currentIdx<proposalIdx){
+   openDeal.stage='Proposta';
+   openDeal.stageEnteredAt=today();
+   return ' · oportunidade avançou para "Proposta" no Pipeline';
+  }
+  return '';
+ }else{
+  const nextId=Math.max(0,...data.deals.map(d=>d.id))+1;
+  data.deals.push({id:nextId,company:proposal.company,title:'Proposta: '+(proposal.item||'sem descrição'),value:Number(proposal.value)||0,stage:'Proposta',prob:50,priority:'Média',next:proposal.date||today(),stageEnteredAt:today()});
+  return ' · oportunidade criada na etapa "Proposta" no Pipeline';
+ }
+}
+function handleProposalAutomation(proposal,previousStatus){ if(!proposal)return;
  if(proposal.status==='Aprovada' && previousStatus!=='Aprovada'){
   data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),title:'Fechamento/Onboarding: '+proposal.item,company:proposal.company,date:today(),time:'10:00',type:'Tarefa',status:'Pendente'});
   toast('Proposta aprovada — tarefa de fechamento/onboarding criada automaticamente');
@@ -2476,12 +2525,14 @@ function saveForm(type,collection,id){
       if(obj.stage==='Perdido'){save();closeModal();openLossReasonMenu(id);return}
      }
      if(type==='proposal' && old.status!==obj.status) handleProposalAutomation(arr[i],old.status);
+     if(type==='proposal') extraMsg+=syncDealForProposal(arr[i]);
    }
  }else{
    obj.id=Date.now();
    if(type==='deal' && obj.stage==='Fechado')obj.closedAt=today();
    data[collection].push(obj);
    if(type==='deal') handleDealAutomation(obj,null,true);
+   if(type==='proposal') extraMsg+=syncDealForProposal(obj);
  }
  if(type==='company' && !id && pendingReturnForm){
   const rt=pendingReturnForm,rid=pendingReturnId,newName=obj.name;
