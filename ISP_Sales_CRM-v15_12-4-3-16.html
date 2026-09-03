@@ -119,6 +119,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 <div class="modal" id="dealDetailModal"><div class="modal-box"><div class="modal-head"><b id="dealDetailTitle">Oportunidade</b><button class="icon-btn" onclick="closeDealDetails()">✕</button></div><div class="modal-body" id="dealDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeDealDetails()">Fechar</button><button class="btn danger" id="dealDetailDeleteBtn">🗑 Excluir</button><button class="btn primary" id="dealDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="contactDetailModal"><div class="modal-box"><div class="modal-head"><b id="contactDetailTitle">Contato</b><button class="icon-btn" onclick="closeContactDetails()">✕</button></div><div class="modal-body" id="contactDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeContactDetails()">Fechar</button><button class="btn danger" id="contactDetailDeleteBtn">Excluir</button><button class="btn primary" id="contactDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="contactOutcomeModal"><div class="modal-box" style="max-width:380px"><div class="modal-head"><b id="contactOutcomeTitle">Motivo</b><button class="icon-btn" onclick="closeContactOutcomeModal()">✕</button></div><div class="modal-body" id="contactOutcomeBody"></div></div></div>
+<div class="modal" id="taskResultModal"><div class="modal-box" style="max-width:420px"><div class="modal-head"><b>O que aconteceu nessa tarefa?</b><button class="icon-btn" onclick="closeTaskResultModal()">✕</button></div><div class="modal-body"><textarea id="taskResultInput" rows="4" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;box-sizing:border-box;font-family:inherit" placeholder="Ex: cliente pediu pra retornar semana que vem / não atendeu / fechou negócio na hora..."></textarea></div><div class="modal-foot"><button class="btn" onclick="closeTaskResultModal()">Pular</button><button class="btn primary" onclick="saveTaskResult()">Salvar</button></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -168,7 +169,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v15.79 · 2026-08-30 · Tarefas: reordenada a página — busca e os grupos (Atrasadas/Hoje/Próximas/Concluídas) agora ficam no topo, e "🎯 Sugestões de hoje" foi para o rodapé, com visual mais discreto (era destacado com borda azul, combinando com a posição de topo que tinha antes)';
+const APP_BUILD='v15.80 · 2026-08-30 · Tarefas: (1) card na Agenda agora mostra o nome da empresa antes do título; (2) novo campo "Anotações" no formulário de tarefa, pra registrar detalhes rápidos; (3) ao marcar uma tarefa como Concluída, o CRM pergunta o que aconteceu ("Fechou negócio", "Não atendeu", etc — texto livre) e guarda esse resultado, visível na ficha da tarefa';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -1736,6 +1737,8 @@ function showTaskDetails(id){
    ${field('Celular',cel)}
    ${field('Telefone fixo',tel)}
  </div>
+ ${t.notes?`<div class="field" style="margin-top:6px"><label>Anotações</label><div style="padding:8px 0;white-space:pre-wrap">${esc(t.notes)}</div></div>`:''}
+ ${t.resultado?`<div class="field" style="margin-top:6px;background:#f0fdf4;border-radius:8px;padding:0 10px"><label>✅ O que aconteceu</label><div style="padding:8px 0;white-space:pre-wrap">${esc(t.resultado)}</div></div>`:''}
  <div style="display:flex;gap:6px;margin-top:6px">${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)}</div>`;
  document.getElementById('taskDetailEditBtn').onclick=()=>{closeTaskDetails();editItem('task',id)};
  document.getElementById('taskDetailDeleteBtn').onclick=()=>{closeTaskDetails();del('tasks',id)};
@@ -1821,7 +1824,7 @@ function renderAgenda(){
   const ev=data.events.filter(e=>e.date===date);
   const tk=data.tasks.filter(t=>t.date===date);
   const evHtml=ev.map(e=>`<div class="event" style="cursor:pointer" onclick="editItem('event',${e.id})" title="Reunião — toque para editar">📅 ${e.time} ${esc(e.title)} <span onclick="event.stopPropagation();del('events',${e.id})" title="Excluir" style="float:right;opacity:.6">🗑</span></div>`).join('');
-  const tkHtml=tk.map(t=>`<div class="event" style="cursor:pointer;background:${t.status==='Concluída'?'#e8f7ed':'#fff5df'};color:${t.status==='Concluída'?'#17813a':'#a86b00'}" onclick="showTaskDetails(${t.id})" title="Tarefa — toque para ver/editar">${t.status==='Concluída'?'✅':'☑️'} ${t.time||''} ${esc(t.title)}</div>`).join('');
+  const tkHtml=tk.map(t=>`<div class="event" style="cursor:pointer;background:${t.status==='Concluída'?'#e8f7ed':'#fff5df'};color:${t.status==='Concluída'?'#17813a':'#a86b00'}" onclick="showTaskDetails(${t.id})" title="Tarefa — toque para ver/editar">${t.status==='Concluída'?'✅':'☑️'} ${t.time||''} <b>${esc(t.company)}</b> — ${esc(t.title)}</div>`).join('');
   cellsHtml+=`<div class="day"${isToday?' style="border:2px solid #3b82f6;background:#eff6ff"':''}><b${isToday?' style="color:#1d4ed8"':''}>${dayNum}</b>${evHtml}${tkHtml}</div>`;
  }
  document.getElementById('agenda').innerHTML=`<div class="page-head"><div><h1>Agenda</h1><p>Reuniões (📅) e tarefas agendadas (☑️/✅), visitas e compromissos</p></div><button class="btn primary" onclick="openForm('event')">＋ Agendar reunião</button></div><div class="card panel"><div class="panel-head"><h3>${MESES[month]} ${year}</h3><div class="actions"><button class="btn small" onclick="changeAgendaMonth(-1)">‹</button><button class="btn small" onclick="goToAgendaToday()">Hoje</button><button class="btn small" onclick="changeAgendaMonth(1)">›</button></div></div><div class="calendar">${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(x=>`<div style="font-weight:700;font-size:11px;color:#777;padding:5px">${x}</div>`).join('')}${cellsHtml}</div></div>`;
@@ -2335,7 +2338,7 @@ function openForm(type,id=null,prefill=null){
  company:{title:edit?'Editar empresa':'Nova empresa',collection:'companies',fields:[['name','Empresa','text',edit?.name||''],['cnpj','CNPJ','text',edit?.cnpj||''],['city','Cidade','text',edit?.city||''],['phone','Telefone','text',edit?.phone||''],['address','Endereço','text',edit?.address||''],['email','E-mail','email',edit?.email||''],['segment','Segmento','text',edit?.segment||'ISP'],['status','Status','select',edit?.status||'Lead',stages],['origin','Origem','select',edit?.origin||'Captação de lead',origins],['leadScore','Lead Score (0-100)','number',edit?.leadScore??50],['owner','Responsável','text',edit?.owner||'Fábio Chiesa'],['notes','Observação','textarea',edit?.notes||'']]},
  contact:{title:edit?'Editar contato':'Novo contato',collection:'contacts',fields:[['name','Nome','text',edit?.name||''],['company','Empresa','company-select',edit?.company||prefill?.company||''],['role','Cargo','text',edit?.role||''],['cel','Celular (WhatsApp)','text',edit?.cel||''],['tel','Telefone fixo','text',edit?.tel||''],['email','E-mail','email',edit?.email||'']]},
  deal:{title:edit?'Editar oportunidade':'Nova oportunidade',collection:'deals',fields:[['company','Empresa','company-select',edit?.company||prefill?.company||''],['title','Oportunidade','text',edit?.title||''],['contact','Contato','contact-select',edit?.contact||''],['value','Valor','number',edit?.value||0],['stage','Etapa','select',edit?.stage||'Lead',dealStages],['prob','Probabilidade (%)','number',edit?.prob||20],['priority','Prioridade','select',edit?.priority||'Média',['Alta','Média','Baixa']],['next','Próximo passo','date',edit?.next||today()],['notes','Observação comercial','textarea',edit?.notes||'']]},
- task:{title:edit?'Editar tarefa':'Nova tarefa',collection:'tasks',fields:[['title','Tarefa','text',edit?.title||''],['company','Empresa','company-select',edit?.company||prefill?.company||''],['contact','Contato','contact-select',edit?.contact||''],['date','Data','date',edit?.date||today()],['time','Hora','time',edit?.time||'09:00'],['type','Tipo','select',edit?.type||prefill?.type||'Ligação',['Ligação','E-mail','Reunião','WhatsApp','Tarefa','Nota']],['status','Status','select',edit?.status||'Pendente',['Pendente','Concluída']]]},
+ task:{title:edit?'Editar tarefa':'Nova tarefa',collection:'tasks',fields:[['title','Tarefa','text',edit?.title||''],['company','Empresa','company-select',edit?.company||prefill?.company||''],['contact','Contato','contact-select',edit?.contact||''],['date','Data','date',edit?.date||today()],['time','Hora','time',edit?.time||'09:00'],['type','Tipo','select',edit?.type||prefill?.type||'Ligação',['Ligação','E-mail','Reunião','WhatsApp','Tarefa','Nota']],['status','Status','select',edit?.status||'Pendente',['Pendente','Concluída']],['notes','Anotações','textarea',edit?.notes||'']]},
  proposal:{title:edit?'Editar proposta':'Nova proposta',collection:'proposals',fields:[['company','Empresa','company-select',edit?.company||prefill?.company||''],['item','Produto/Serviço','text',edit?.item||''],['value','Valor','number',edit?.value||0],['date','Vencimento','date',edit?.date||today()],['status','Status','select',edit?.status||'Rascunho',['Rascunho','Enviada','Aguardando','Aprovada','Recusada']]]},
  product:{title:edit?'Editar produto':'Novo produto',collection:'products',fields:[['name','Produto','text',edit?.name||''],['category','Categoria','text',edit?.category||''],['price','Preço','number',edit?.price||0],['active','Ativo','select',edit?.active||'Sim',['Sim','Não']]]},
  event:{title:edit?'Editar reunião':'Agendar reunião',collection:'events',fields:[['title','Título','text',edit?.title||'Reunião comercial'],['company','Empresa','company-select',edit?.company||prefill?.company||''],['date','Data','date',edit?.date||today()],['time','Hora','time',edit?.time||'14:00']]}
@@ -2380,9 +2383,36 @@ function handleDealAutomation(deal, previousStage, isNew){
  }
  scheduleNextStepForDeal(deal,previousStage,isNew);
 }
-function completeTask(id){const t=data.tasks.find(x=>x.id===id);if(t){t.status=t.status==='Concluída'?'Pendente':'Concluída';if(t.status==='Concluída' && t.dealId){const d=data.deals.find(x=>x.id===t.dealId);if(d){const next=new Date();next.setDate(next.getDate()+2);d.next=next.toISOString().slice(0,10)}}save();toast(t.status==='Concluída'?'Tarefa concluída':'Tarefa reaberta')}}
+function completeTask(id){
+ const t=data.tasks.find(x=>x.id===id);
+ if(!t)return;
+ const wasCompleting=t.status!=='Concluída';
+ t.status=t.status==='Concluída'?'Pendente':'Concluída';
+ if(t.status==='Concluída' && t.dealId){const d=data.deals.find(x=>x.id===t.dealId);if(d){const next=new Date();next.setDate(next.getDate()+2);d.next=next.toISOString().slice(0,10)}}
+ save();
+ toast(t.status==='Concluída'?'Tarefa concluída':'Tarefa reaberta');
+ if(wasCompleting)openTaskResultModal(id);
+}
+let _pendingTaskResultId=null;
+function openTaskResultModal(id){
+ const t=data.tasks.find(x=>x.id===id);
+ if(!t)return;
+ _pendingTaskResultId=id;
+ document.getElementById('taskResultInput').value=t.resultado||'';
+ document.getElementById('taskResultModal').classList.add('open');
+}
+function closeTaskResultModal(){document.getElementById('taskResultModal').classList.remove('open');_pendingTaskResultId=null}
+function saveTaskResult(){
+ const t=data.tasks.find(x=>x.id===_pendingTaskResultId);
+ if(t){
+  t.resultado=document.getElementById('taskResultInput').value.trim();
+  save();
+  toast('Resultado registrado');
+ }
+ closeTaskResultModal();
+}
 function saveForm(type,collection,id){
- const defs={company:['name','cnpj','city','phone','address','email','segment','status','origin','leadScore','owner','notes'],contact:['name','company','role','cel','tel','email'],deal:['company','title','contact','value','stage','prob','priority','next','notes'],task:['title','company','contact','date','time','type','status'],proposal:['company','item','value','date','status'],product:['name','category','price','active'],event:['title','company','date','time']};
+ const defs={company:['name','cnpj','city','phone','address','email','segment','status','origin','leadScore','owner','notes'],contact:['name','company','role','cel','tel','email'],deal:['company','title','contact','value','stage','prob','priority','next','notes'],task:['title','company','contact','date','time','type','status','notes'],proposal:['company','item','value','date','status'],product:['name','category','price','active'],event:['title','company','date','time']};
  const obj={};defs[type].forEach(k=>{let v=document.getElementById('f_'+k)?.value??'';if(['value','prob','price','leadScore'].includes(k))v=Number(v);obj[k]=v});
  if(type==='company' && obj.phone)obj.phone=formatPhoneBR(obj.phone);
  if(type==='contact'){if(obj.cel)obj.cel=formatPhoneBR(obj.cel);if(obj.tel)obj.tel=formatPhoneBR(obj.tel)}
