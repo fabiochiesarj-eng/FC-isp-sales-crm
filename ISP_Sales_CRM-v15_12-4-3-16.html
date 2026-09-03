@@ -115,7 +115,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 <div class="modal" id="confirmModal"><div class="modal-box" style="max-width:380px"><div class="modal-body" style="text-align:center;padding:30px 22px 10px"><div style="font-size:34px;margin-bottom:12px">⚠️</div><p id="confirmMessage" style="margin:0;font-weight:700;font-size:15px;white-space:pre-wrap"></p></div><div class="modal-foot"><button class="btn" onclick="closeConfirm()">Cancelar</button><button class="btn danger" id="confirmOkBtn">Excluir</button></div></div></div>
 <div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><b id="modalTitle">Novo registro</b><button class="icon-btn" onclick="closeModal()">✕</button></div><div class="modal-body" id="modalBody"></div><div class="modal-foot"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="modalSave">Salvar</button></div></div></div>
 <div class="modal" id="companyDetailModal"><div class="modal-box"><div class="modal-head"><b id="companyDetailTitle">Detalhes da empresa</b><button class="icon-btn" onclick="closeCompanyDetails()">✕</button></div><div class="modal-body" id="companyDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeCompanyDetails()">Fechar</button><button class="btn" id="companyDetailTaskBtn">📅 Tarefa</button><button class="btn" id="companyDetailProposalBtn">📄 Proposta</button><button class="btn" id="companyDetailDealBtn">💼 Oportunidade</button><button class="btn danger" id="companyDetailDeleteBtn">🗑 Excluir</button><button class="btn primary" id="companyDetailEditBtn">Editar</button></div></div></div>
-<div class="modal" id="taskDetailModal"><div class="modal-box"><div class="modal-head"><b id="taskDetailTitle">Detalhes da tarefa</b><button class="icon-btn" onclick="closeTaskDetails()">✕</button></div><div class="modal-body" id="taskDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeTaskDetails()">Fechar</button><button class="btn" id="taskDetailConvertBtn" style="display:none">💼 Converter em Oportunidade</button><button class="btn danger" id="taskDetailDeleteBtn">🗑 Excluir</button><button class="btn primary" id="taskDetailEditBtn">Editar</button></div></div></div>
+<div class="modal" id="taskDetailModal"><div class="modal-box"><div class="modal-head"><b id="taskDetailTitle">Detalhes da tarefa</b><button class="icon-btn" onclick="closeTaskDetails()">✕</button></div><div class="modal-body" id="taskDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeTaskDetails()">Fechar</button><button class="btn" id="taskDetailNewTaskBtn">➕ Nova tarefa</button><button class="btn success" id="taskDetailCompleteBtn">✔ Concluir</button><button class="btn" id="taskDetailConvertBtn" style="display:none">💼 Converter em Oportunidade</button><button class="btn danger" id="taskDetailDeleteBtn">🗑 Excluir</button><button class="btn primary" id="taskDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="dealDetailModal"><div class="modal-box"><div class="modal-head"><b id="dealDetailTitle">Oportunidade</b><button class="icon-btn" onclick="closeDealDetails()">✕</button></div><div class="modal-body" id="dealDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeDealDetails()">Fechar</button><button class="btn danger" id="dealDetailDeleteBtn">🗑 Excluir</button><button class="btn primary" id="dealDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="contactDetailModal"><div class="modal-box"><div class="modal-head"><b id="contactDetailTitle">Contato</b><button class="icon-btn" onclick="closeContactDetails()">✕</button></div><div class="modal-body" id="contactDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeContactDetails()">Fechar</button><button class="btn danger" id="contactDetailDeleteBtn">Excluir</button><button class="btn primary" id="contactDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="contactOutcomeModal"><div class="modal-box" style="max-width:380px"><div class="modal-head"><b id="contactOutcomeTitle">Motivo</b><button class="icon-btn" onclick="closeContactOutcomeModal()">✕</button></div><div class="modal-body" id="contactOutcomeBody"></div></div></div>
@@ -169,7 +169,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v15.80 · 2026-08-30 · Tarefas: (1) card na Agenda agora mostra o nome da empresa antes do título; (2) novo campo "Anotações" no formulário de tarefa, pra registrar detalhes rápidos; (3) ao marcar uma tarefa como Concluída, o CRM pergunta o que aconteceu ("Fechou negócio", "Não atendeu", etc — texto livre) e guarda esse resultado, visível na ficha da tarefa';
+const APP_BUILD='v15.82 · 2026-08-30 · Tarefas: a ficha aberta pela Agenda ganhou os botões "✔ Concluir" e "➕ Nova tarefa" (pra mesma empresa) — antes só dava pra editar/excluir por ali. A tabela de Tarefas também ganhou o botão "➕ Nova tarefa" ao lado do que já existia (Concluir)';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -1693,7 +1693,7 @@ function taskRowHtml(t){
  const contact=resolveTaskContact(t);
  const contactName=contact?contact.name:(t.contact?String(t.contact).split(' — ')[0]:'');
  const cel=contact?.cel||'',tel=contact?.tel||'';
- return `<tr><td>${t.date}</td><td>${t.time}</td><td>${t.company?`<small style="display:block;color:#8a94a3;font-weight:600">${esc(t.company)}</small>`:''}<b><a href="#" onclick="event.preventDefault();showTaskDetails(${t.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(t.title)}</a></b></td><td>${esc(t.company)}</td><td>${esc(contactName)}</td><td>${esc(cel||tel)}</td><td>${t.type}</td><td>${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)} <button class="btn small success" onclick="completeTask(${t.id})">${t.status==='Concluída'?'Reabrir':'Concluir'}</button> <button class="btn small" onclick="editItem('task',${t.id})">Editar</button>${t.status==='Concluída'?` <button class="btn small danger" onclick="del('tasks',${t.id})">Excluir</button>`:''}</td></tr>`;
+ return `<tr><td>${t.date}</td><td>${t.time}</td><td>${t.company?`<small style="display:block;color:#8a94a3;font-weight:600">${esc(t.company)}</small>`:''}<b><a href="#" onclick="event.preventDefault();showTaskDetails(${t.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(t.title)}</a></b></td><td>${esc(t.company)}</td><td>${esc(contactName)}</td><td>${esc(cel||tel)}</td><td>${t.type}</td><td>${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)} <button class="btn small success" onclick="completeTask(${t.id})">${t.status==='Concluída'?'Reabrir':'Concluir'}</button> <button class="btn small" onclick="quickTask('${String(t.company).replace(/'/g,"’")}')">➕ Nova tarefa</button> <button class="btn small" onclick="editItem('task',${t.id})">Editar</button>${t.status==='Concluída'?` <button class="btn small danger" onclick="del('tasks',${t.id})">Excluir</button>`:''}</td></tr>`;
 }
 function taskGroupTable(list,emptyMsg){
  return list.length?`<div class="card table-wrap"><table class="table" data-table-group="tarefas"><thead><tr><th data-col="0">Data</th><th data-col="1">Hora</th><th data-col="2">Tarefa</th><th data-col="3">Empresa</th><th data-col="4">Contato</th><th data-col="5">Tel</th><th data-col="6">Tipo</th><th data-col="7">Ações</th></tr></thead><tbody>${list.map(taskRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
@@ -1742,6 +1742,10 @@ function showTaskDetails(id){
  <div style="display:flex;gap:6px;margin-top:6px">${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)}</div>`;
  document.getElementById('taskDetailEditBtn').onclick=()=>{closeTaskDetails();editItem('task',id)};
  document.getElementById('taskDetailDeleteBtn').onclick=()=>{closeTaskDetails();del('tasks',id)};
+ document.getElementById('taskDetailNewTaskBtn').onclick=()=>{closeTaskDetails();quickTask(t.company)};
+ const completeBtn=document.getElementById('taskDetailCompleteBtn');
+ completeBtn.textContent=t.status==='Concluída'?'↺ Reabrir':'✔ Concluir';
+ completeBtn.onclick=()=>{closeTaskDetails();completeTask(id)};
  const convertBtn=document.getElementById('taskDetailConvertBtn');
  if(t.status==='Concluída' && (t.type==='Ligação'||t.type==='WhatsApp')){
   convertBtn.style.display='';
@@ -2357,19 +2361,19 @@ function scheduleNextStepForDeal(deal, oldStage, isNew){
  const exists=data.tasks.some(t=>t.dealId===deal.id && t.status!=='Concluída' && t.type==='Tarefa');
  if(exists) return;
  const d=new Date(); d.setDate(d.getDate()+days);
- data.tasks.push({id:Date.now()+Math.random(),dealId:deal.id,title:'Follow-up: '+deal.title,company:deal.company,date:d.toISOString().slice(0,10),time:'09:00',type:deal.stage==='Proposta'?'Ligação':'Tarefa',status:'Pendente'});
+ data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),dealId:deal.id,title:'Follow-up: '+deal.title,company:deal.company,date:d.toISOString().slice(0,10),time:'09:00',type:deal.stage==='Proposta'?'Ligação':'Tarefa',status:'Pendente'});
 }
 function handleProposalAutomation(proposal,previousStatus){
  if(!proposal)return;
  if(proposal.status==='Aprovada' && previousStatus!=='Aprovada'){
-  data.tasks.push({id:Date.now()+Math.random(),title:'Fechamento/Onboarding: '+proposal.item,company:proposal.company,date:today(),time:'10:00',type:'Tarefa',status:'Pendente'});
+  data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),title:'Fechamento/Onboarding: '+proposal.item,company:proposal.company,date:today(),time:'10:00',type:'Tarefa',status:'Pendente'});
   toast('Proposta aprovada — tarefa de fechamento/onboarding criada automaticamente');
   return;
  }
  if(proposal.status==='Recusada' && previousStatus!=='Recusada'){
   showConfirm('Proposta marcada como recusada. Criar uma tarefa de novo follow-up com essa empresa em 30 dias?',()=>{
    const next=new Date();next.setDate(next.getDate()+30);
-   data.tasks.push({id:Date.now()+Math.random(),title:'Novo follow-up após proposta recusada',company:proposal.company,date:next.toISOString().slice(0,10),time:'10:00',type:'Tarefa',status:'Pendente'});
+   data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),title:'Novo follow-up após proposta recusada',company:proposal.company,date:next.toISOString().slice(0,10),time:'10:00',type:'Tarefa',status:'Pendente'});
    save();
    toast('Tarefa de follow-up criada para daqui a 30 dias');
   },'Criar follow-up');
@@ -2378,7 +2382,7 @@ function handleProposalAutomation(proposal,previousStatus){
 function handleDealAutomation(deal, previousStage, isNew){
  if(!deal)return;
  if(deal.stage==='Fechado'){
-   data.tasks.push({id:Date.now()+Math.random(),dealId:deal.id,title:'Encaminhar implantação: '+deal.title,company:deal.company,date:today(),time:'10:00',type:'Tarefa',status:'Pendente'});
+   data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),dealId:deal.id,title:'Encaminhar implantação: '+deal.title,company:deal.company,date:today(),time:'10:00',type:'Tarefa',status:'Pendente'});
    return;
  }
  scheduleNextStepForDeal(deal,previousStage,isNew);
@@ -2442,7 +2446,7 @@ function saveForm(type,collection,id){
   const found=data.companies.find(c=>c.name.toLowerCase()===cname.toLowerCase());
   if(found){obj.company=found.name}
   else{
-   data.companies.push({id:Date.now()+Math.random(),name:cname,city:'',phone:'',segment:'ISP',status:'Lead',origin:'Captação de lead',owner:'Fábio Chiesa',leadScore:50});
+   data.companies.push({id:Date.now()+Math.floor(Math.random()*1000),name:cname,city:'',phone:'',segment:'ISP',status:'Lead',origin:'Captação de lead',owner:'Fábio Chiesa',leadScore:50});
    extraMsg=' + empresa "'+cname+'" cadastrada automaticamente';
   }
  }
@@ -2678,7 +2682,7 @@ function importExcel(){
       const rows=XLSX.utils.sheet_to_json(wb.Sheets[label],{defval:''});
       data[col]=rows.map(row=>{
        const o={...row};
-       o.id=(o.id!==''&&o.id!==undefined&&!isNaN(o.id))?Number(o.id):(o.id||(Date.now()+Math.random()));
+       o.id=(o.id!==''&&o.id!==undefined&&!isNaN(o.id))?Number(o.id):(o.id||(Date.now()+Math.floor(Math.random()*1000)));
        return o;
       });
      });
@@ -2710,7 +2714,7 @@ function importCSV(){const inp=document.createElement('input');inp.type='file';i
    if(!name)return;
    if(existingCsvNames.has(String(name).trim().toLowerCase()))return;
    const rawPhone=o.phone||o.Telefone||o.telefone||'';
-   data.companies.push({id:Date.now()+Math.random(),name,city:o.city||o.Cidade||o.cidade||'',phone:rawPhone?formatPhoneBR(rawPhone):'',segment:'ISP',status:'Lead',origin:'Captação de lead',owner:'Fábio Chiesa',leadScore:50});
+   data.companies.push({id:Date.now()+Math.floor(Math.random()*1000),name,city:o.city||o.Cidade||o.cidade||'',phone:rawPhone?formatPhoneBR(rawPhone):'',segment:'ISP',status:'Lead',origin:'Captação de lead',owner:'Fábio Chiesa',leadScore:50});
    existingCsvNames.add(String(name).trim().toLowerCase());
    count++;
   });
@@ -2745,6 +2749,21 @@ if(getSyncConfig()){
  let changed=false;
  data.deals.forEach(d=>{if(d.stage==='Fechado'&&!d.closedAt){d.closedAt=today();changed=true}});
  if(changed)save();
+})();
+(function migrateFloatIds(){
+ // corrige registros criados com id decimal (Date.now()+Math.random()), que
+ // podia perder precisão ao ir e voltar da nuvem e quebrar cliques (ficha não
+ // abria, "nada acontecia") — atribui um novo id inteiro seguro pra cada um
+ let changed=false,counter=0;
+ ['companies','contacts','deals','tasks','proposals'].forEach(col=>{
+  (data[col]||[]).forEach(item=>{
+   if(item && typeof item.id==='number' && !Number.isInteger(item.id)){
+    item.id=Date.now()+(counter++);
+    changed=true;
+   }
+  });
+ });
+ if(changed){save();setTimeout(()=>toast('Alguns registros tiveram o identificador corrigido — se algo não abria antes, tente de novo agora'),1600)}
 })();
 if(data._carteiraCount){setTimeout(()=>{toast(data._carteiraCount+' cliente(s) da carteira migrado(s) com sucesso');delete data._carteiraCount;save()},400)}
 if(data._dedupeRemovedCount!==undefined){setTimeout(()=>{toast(data._dedupeRemovedCount>0?data._dedupeRemovedCount+' duplicata(s) removida(s) e telefones corrigidos':'Telefones corrigidos com código do país');delete data._dedupeRemovedCount;save()},1200)}
