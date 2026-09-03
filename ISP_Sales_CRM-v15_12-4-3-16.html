@@ -168,7 +168,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v15.78 · 2026-08-30 · Removido o botão flutuante 📇 de registrar contato fora do CRM — junto com o modal e as funções que ele abria';
+const APP_BUILD='v15.79 · 2026-08-30 · Tarefas: reordenada a página — busca e os grupos (Atrasadas/Hoje/Próximas/Concluídas) agora ficam no topo, e "🎯 Sugestões de hoje" foi para o rodapé, com visual mais discreto (era destacado com borda azul, combinando com a posição de topo que tinha antes)';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -1686,7 +1686,7 @@ function markSuggestionContacted(companyName){
 function dailySuggestionsPanel(){
  const sug=dailySuggestions();
  const body=sug.length?`<div class="card table-wrap"><table class="table"><thead><tr><th>#</th><th>Empresa</th><th>Potencial</th><th>Score 🧠</th><th>Telefone</th><th>Última interação</th><th>Ações</th></tr></thead><tbody>${sug.map((c,i)=>suggestionRowHtml(c,i)).join('')}</tbody></table></div>`:`<div style="padding:14px 0;color:#8a94a3;font-size:13px">Você já contatou todas as empresas priorizadas hoje. 🎉</div>`;
- return `<div class="card panel" style="margin-bottom:16px;border:1px solid #3b82f6"><div class="panel-head"><h3>🎯 Sugestões de hoje — Inteligência Comercial</h3></div><p style="margin:0 0 10px;color:#667085;font-size:13px">As 10 empresas com maior <b>Score 🧠</b> que você ainda não contatou hoje. O score combina potencial de receita, engajamento nos últimos contatos (produtivo/improdutivo) e tempo parado na etapa atual — passe o mouse/toque no score pra ver o detalhe de cada empresa.</p>${body}</div>`;
+ return `<div class="card panel" style="margin-top:16px;border:1px solid #edf0f4"><div class="panel-head"><h3>🎯 Sugestões de hoje — Inteligência Comercial</h3></div><p style="margin:0 0 10px;color:#667085;font-size:13px">As 10 empresas com maior <b>Score 🧠</b> que você ainda não contatou hoje. O score combina potencial de receita, engajamento nos últimos contatos (produtivo/improdutivo) e tempo parado na etapa atual — passe o mouse/toque no score pra ver o detalhe de cada empresa.</p>${body}</div>`;
 }
 function taskRowHtml(t){
  const contact=resolveTaskContact(t);
@@ -1708,11 +1708,12 @@ function renderTasks(){
  const upcoming=pend.filter(t=>t.date>now).sort((a,b)=>(a.date+' '+a.time).localeCompare(b.date+' '+b.time));
  const doneSorted=[...done].sort((a,b)=>(b.date+' '+b.time).localeCompare(a.date+' '+a.time));
  document.getElementById('tarefas').innerHTML=tablePage('Tarefas','Follow-ups, atividades e pendências comerciais',`<button class="btn danger" onclick="deleteCompletedTasks()" ${done.length?'':'disabled'}>🗑 Excluir concluídas${done.length?' ('+done.length+')':''}</button><button class="btn primary" onclick="openForm('task')">＋ Nova tarefa</button>`,
- `${dailySuggestionsPanel()}<div class="toolbar"><input id="tasksSearchInput" placeholder="Pesquisar por tarefa, empresa ou contato..." oninput="filterTasksSearch(this.value)"></div>
+ `<div class="toolbar"><input id="tasksSearchInput" placeholder="Pesquisar por tarefa, empresa ou contato..." oninput="filterTasksSearch(this.value)"></div>
  ${groupSection('grp-tasks-overdue','🔴','#dc2626','Atrasadas',overdue.length,taskGroupTable(overdue,'Nenhuma tarefa atrasada — tudo em dia por aqui.'))}
  ${groupSection('grp-tasks-today','🟡','#a86b00','Hoje',todayT.length,taskGroupTable(todayT,'Nenhuma tarefa para hoje.'))}
  ${groupSection('grp-tasks-upcoming','🟢','#16a34a','Próximas',upcoming.length,taskGroupTable(upcoming,'Nenhuma tarefa futura agendada.'))}
- ${groupSection('grp-tasks-done','✅','#667085','Concluídas',done.length,taskGroupTable(doneSorted,'Nenhuma tarefa concluída ainda.'))}`);
+ ${groupSection('grp-tasks-done','✅','#667085','Concluídas',done.length,taskGroupTable(doneSorted,'Nenhuma tarefa concluída ainda.'))}
+ ${dailySuggestionsPanel()}`);
  document.getElementById('tasksSearchInput').value=_pageFilters.tarefas.search||'';
  filterGroupedSearch('tarefas',_pageFilters.tarefas.search||'');
  setupReorderableTables('tarefas');
