@@ -125,7 +125,52 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 
 <script>
 const KEY='isp_sales_crm_v1';
-const APP_BUILD='v15.74 · 2026-08-30 · Revertido o título fixo do Pipeline (não ficou bom) — voltou ao jeito de antes, simples e confiável. Mantidas as correções da Agenda/Reunião (calendário navegável, editar/excluir reunião) e do rodapé do menu';
+const VAPID_PUBLIC_KEY='BBc2Bxqn1raL-uMvJzOIBgvxbjSTV6oqqD078gGmLniBKYI-xw2py6b6z59sxOE_qfPn38mkXkEEdRFrIVVvpgg';
+function urlBase64ToUint8Array(base64String){
+ const padding='='.repeat((4-base64String.length%4)%4);
+ const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+ const rawData=atob(base64);
+ const outputArray=new Uint8Array(rawData.length);
+ for(let i=0;i<rawData.length;++i)outputArray[i]=rawData.charCodeAt(i);
+ return outputArray;
+}
+async function enablePushNotifications(){
+ if(!('serviceWorker' in navigator)||!('PushManager' in window)){toast('Seu navegador não suporta notificações push');return}
+ const client=getSyncClient();
+ if(!client){toast('Configure a sincronização em Supabase primeiro (mesma seção, mais abaixo)');return}
+ try{
+  const permission=await Notification.requestPermission();
+  if(permission!=='granted'){toast('Permissão de notificação negada pelo navegador');return}
+  const reg=await navigator.serviceWorker.ready;
+  let sub=await reg.pushManager.getSubscription();
+  if(!sub){
+   sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
+  }
+  const subJson=sub.toJSON();
+  const {error}=await client.from('push_subscriptions').upsert({endpoint:subJson.endpoint,p256dh:subJson.keys.p256dh,auth:subJson.keys.auth,device_label:navigator.userAgent.slice(0,150)},{onConflict:'endpoint'});
+  if(error){toast('Erro ao salvar inscrição na nuvem: '+error.message);return}
+  localStorage.setItem('pushEnabled','1');
+  toast('🔔 Notificações ativadas! Você recebe um aviso por dia (8h) se houver pendências.');
+  renderConfig();
+ }catch(e){toast('Erro ao ativar notificações: '+e.message)}
+}
+async function disablePushNotifications(){
+ try{
+  if('serviceWorker' in navigator){
+   const reg=await navigator.serviceWorker.ready;
+   const sub=await reg.pushManager.getSubscription();
+   if(sub){
+    const client=getSyncClient();
+    if(client)await client.from('push_subscriptions').delete().eq('endpoint',sub.endpoint);
+    await sub.unsubscribe();
+   }
+  }
+  localStorage.removeItem('pushEnabled');
+  toast('Notificações desativadas neste dispositivo');
+  renderConfig();
+ }catch(e){toast('Erro ao desativar: '+e.message)}
+}
+const APP_BUILD='v15.76 · 2026-08-30 · Corrigida a proteção de sincronização: estava travando a sincronização automática entre Windows e Android por diferenças pequenas e normais do dia a dia (ex: 1 contato a menos), como se fosse perda de dados grave. Agora só bloqueia quando a diferença é realmente grande (o cenário de perigo de verdade) — diferenças pequenas sincronizam normalmente';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -604,7 +649,12 @@ function compareDataCounts(local,incoming){
  keys.forEach(([k,label])=>{
   const localArr=Array.isArray(local?.[k])?local[k]:[];
   const incomingArr=Array.isArray(incoming?.[k])?incoming[k]:[];
-  if(incomingArr.length<localArr.length)shrinking.push(label+': '+localArr.length+' → '+incomingArr.length);
+  const drop=localArr.length-incomingArr.length;
+  // só considera "encolhimento perigoso" se a queda for grande (perda real de dados),
+  // não qualquer diferença de 1-2 registros, que é normal no dia a dia entre 2 aparelhos
+  // (ex: excluir um contato duplicado num dispositivo antes do outro sincronizar)
+  const threshold=Math.max(5,Math.ceil(localArr.length*0.08));
+  if(drop>threshold)shrinking.push(label+': '+localArr.length+' → '+incomingArr.length);
  });
  return shrinking;
 }
@@ -2002,7 +2052,7 @@ ${Object.keys(radarByRegion).sort().map(region=>`<div style="margin-top:8px"><b 
 }
 function renderConfig(){
  const _sc=getSyncConfig()||{};
- document.getElementById('config').innerHTML=`<div class="page-head"><div><h1>Configurações</h1><p>Personalize seu CRM e os dados armazenados neste dispositivo.</p></div></div><div class="card panel settings"><div class="switch"><div><b>🧩 Versão do sistema</b><small style="display:block;color:#777">Use isto para confirmar se você está com o arquivo mais recente.</small></div><span class="tag green">${APP_BUILD}</span></div><div class="switch"><div><b>🎯 Meta mensal de vendas</b><small style="display:block;color:#777">Usada no Dashboard para calcular o % de meta atingida.</small></div><div style="display:flex;gap:8px;align-items:center"><input id="monthlyTargetInput" type="number" min="0" step="100" value="${data.settings.monthlyTarget}" style="width:140px;padding:8px 10px;border:1px solid var(--line);border-radius:8px"><button class="btn primary" onclick="saveMonthlyTarget()">Salvar</button></div></div><div class="switch"><div><b>📈 Taxa de conversão de leads</b><small style="display:block;color:#777">% de leads contatados que viram negócios fechados. Usada para calcular quantos leads contatar por semana.</small></div><div style="display:flex;gap:8px;align-items:center"><input id="conversionRateInput" type="number" min="0.1" max="100" step="0.1" value="${(data.settings.leadConversionRate*100).toFixed(1)}" style="width:100px;padding:8px 10px;border:1px solid var(--line);border-radius:8px"><span>%</span><button class="btn primary" onclick="saveConversionRate()">Salvar</button></div></div><div class="switch"><div><b>Persistência local</b><small style="display:block;color:#777">Os dados ficam salvos no navegador via localStorage.</small></div><span class="tag green">Ativo</span></div><div class="switch"><div><b>Notificações de follow-up</b><small style="display:block;color:#777">Exibir alertas de tarefas atrasadas.</small></div><button class="btn small" onclick="toast('Notificações alternadas')">Ativar/Desativar</button></div><div class="switch" style="display:block"><b>☁️ Sincronização entre dispositivos (Supabase)</b><small style="display:block;color:#777;margin:4px 0 10px">Sincroniza automaticamente entre Windows e Android (a cada alteração e a cada ~15s enquanto o app está aberto) usando um projeto Supabase gratuito. <span id="syncStatusText">${syncStatusText()}</span></small><div class="form-grid"><div class="field"><label>URL do projeto Supabase</label><input id="syncUrl" placeholder="https://xxxx.supabase.co" value="${esc(_sc.url||'')}"></div><div class="field"><label>Anon Key (chave pública)</label><input id="syncKey" placeholder="eyJhbGciOi..." value="${esc(_sc.key||'')}"></div><div class="field"><label>Código de sincronização</label><input id="syncId" placeholder="ex: fabio-crm-2026" value="${esc(_sc.syncId||'')}"></div></div><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" onclick="saveSyncConfigFromForm()">Salvar configuração</button><button class="btn" onclick="pushToCloud(false)">⇪ Forçar envio agora</button><button class="btn" onclick="pullFromCloud(false)">⇩ Forçar busca agora</button></div></div>
+ document.getElementById('config').innerHTML=`<div class="page-head"><div><h1>Configurações</h1><p>Personalize seu CRM e os dados armazenados neste dispositivo.</p></div></div><div class="card panel settings"><div class="switch"><div><b>🧩 Versão do sistema</b><small style="display:block;color:#777">Use isto para confirmar se você está com o arquivo mais recente.</small></div><span class="tag green">${APP_BUILD}</span></div><div class="switch"><div><b>🎯 Meta mensal de vendas</b><small style="display:block;color:#777">Usada no Dashboard para calcular o % de meta atingida.</small></div><div style="display:flex;gap:8px;align-items:center"><input id="monthlyTargetInput" type="number" min="0" step="100" value="${data.settings.monthlyTarget}" style="width:140px;padding:8px 10px;border:1px solid var(--line);border-radius:8px"><button class="btn primary" onclick="saveMonthlyTarget()">Salvar</button></div></div><div class="switch"><div><b>📈 Taxa de conversão de leads</b><small style="display:block;color:#777">% de leads contatados que viram negócios fechados. Usada para calcular quantos leads contatar por semana.</small></div><div style="display:flex;gap:8px;align-items:center"><input id="conversionRateInput" type="number" min="0.1" max="100" step="0.1" value="${(data.settings.leadConversionRate*100).toFixed(1)}" style="width:100px;padding:8px 10px;border:1px solid var(--line);border-radius:8px"><span>%</span><button class="btn primary" onclick="saveConversionRate()">Salvar</button></div></div><div class="switch"><div><b>Persistência local</b><small style="display:block;color:#777">Os dados ficam salvos no navegador via localStorage.</small></div><span class="tag green">Ativo</span></div><div class="switch" style="display:block"><b>🔔 Notificações push (grátis, sem WhatsApp)</b><small style="display:block;color:#777;margin:4px 0 10px">Todo dia às 8h, se você tiver tarefas atrasadas ou clientes sem contato agendado, este dispositivo recebe uma notificação — mesmo com o CRM fechado. Funciona só neste aparelho; ative em cada um que quiser avisar.</small><div id="pushStatusBox" style="font-size:13px;color:#667085;margin-bottom:8px">${localStorage.getItem('pushEnabled')?'✅ Ativado neste dispositivo':'⚪ Não ativado neste dispositivo'}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" onclick="enablePushNotifications()">🔔 Ativar notificações</button><button class="btn" onclick="disablePushNotifications()">Desativar</button></div></div><div class="switch" style="display:block"><b>☁️ Sincronização entre dispositivos (Supabase)</b><small style="display:block;color:#777;margin:4px 0 10px">Sincroniza automaticamente entre Windows e Android (a cada alteração e a cada ~15s enquanto o app está aberto) usando um projeto Supabase gratuito. <span id="syncStatusText">${syncStatusText()}</span></small><div class="form-grid"><div class="field"><label>URL do projeto Supabase</label><input id="syncUrl" placeholder="https://xxxx.supabase.co" value="${esc(_sc.url||'')}"></div><div class="field"><label>Anon Key (chave pública)</label><input id="syncKey" placeholder="eyJhbGciOi..." value="${esc(_sc.key||'')}"></div><div class="field"><label>Código de sincronização</label><input id="syncId" placeholder="ex: fabio-crm-2026" value="${esc(_sc.syncId||'')}"></div></div><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" onclick="saveSyncConfigFromForm()">Salvar configuração</button><button class="btn" onclick="pushToCloud(false)">⇪ Forçar envio agora</button><button class="btn" onclick="pullFromCloud(false)">⇩ Forçar busca agora</button></div></div>
 <div class="switch"><div><b>Exportar backup</b><small style="display:block;color:#777">Baixe todos os dados do CRM em JSON.</small></div><button class="btn" onclick="backup()">⇩ Backup</button></div><div class="switch"><div><b>Restaurar backup (JSON)</b><small style="display:block;color:#777">Substitui os dados atuais pelos dados de um arquivo de backup exportado anteriormente.</small></div><button class="btn" onclick="restoreBackup()">⇧ Restaurar backup</button></div><div class="switch"><div><b>Exportar Excel</b><small style="display:block;color:#777">Baixe Empresas, Contatos, Oportunidades, Tarefas e Propostas em um arquivo .xlsx (uma aba por módulo), para editar no Excel/Google Sheets.</small></div><button class="btn" onclick="exportExcel()">⇩ Exportar Excel</button></div><div class="switch"><div><b>Importar Excel</b><small style="display:block;color:#777">Importa um .xlsx no mesmo formato do exportado — substitui os dados das abas encontradas no arquivo (as demais abas não são alteradas).</small></div><button class="btn" onclick="importExcel()">⇧ Importar Excel</button></div><div class="switch"><div><b>Restaurar dados de demonstração</b><small style="display:block;color:#777">Substitui os dados atuais pelos dados iniciais (baixa um backup de segurança automaticamente antes).</small></div><button class="btn danger" onclick="resetDemo()">Restaurar</button></div></div>`;
 }
 function saveMonthlyTarget(){
@@ -2654,6 +2704,11 @@ bb.textContent=APP_BUILD.split(' · ').slice(0,2).join(' · ');
 bb.title=APP_BUILD;
 renderAll();
 initPipelinePan();
+if('serviceWorker' in navigator){
+ window.addEventListener('load',()=>{
+  navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('Falha ao registrar Service Worker:',e));
+ });
+}
 if(getSyncConfig()){
  (async()=>{
   if(localStorage.getItem(SYNC_PENDING_KEY)){
