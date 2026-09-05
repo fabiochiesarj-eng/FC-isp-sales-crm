@@ -169,7 +169,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v15.87 · 2026-08-30 · Novo: marcar qualquer card como "importante" — toque no ícone 🏳️ (vira 🚩) em qualquer oportunidade do Pipeline, ou em qualquer tarefa/reunião da Agenda, e o card fica com fundo vermelho claro. Você decide quais cards recebem o destaque; toque de novo pra desmarcar';
+const APP_BUILD='v15.88 · 2026-08-30 · Corrigido: "Sugestões de hoje" (Tarefas) e "Leads da semana" (Inteligência Comercial) não repetem mais empresas que já têm alguma tarefa pendente marcada (atrasada, de hoje ou futura) — essas já são acompanhadas na aba Tarefas normal. As sugestões agora mostram só quem realmente caiu do radar, sem tarefa nenhuma agendada';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -1316,6 +1316,7 @@ function weeklyLeadIntel(g){
  const weeklyTarget=Math.max(g.leadsPerWeek,5);
  const suggestions=[...data.companies]
   .filter(c=>!contactedCompanies.has(c.name))
+  .filter(c=>!data.tasks.some(t=>t.company===c.name&&t.status!=='Concluída'))
   .sort((a,b)=>computeIntelScore(b).score-computeIntelScore(a).score)
   .slice(0,weeklyTarget);
  return {week:wk,contactedCount:contactedCompanies.size,weeklyTarget,suggestions};
@@ -1676,6 +1677,7 @@ function dailySuggestions(){
  const now=today();
  return [...data.companies]
   .filter(c=>(data.contactLog||{})[c.name]!==now)
+  .filter(c=>!data.tasks.some(t=>t.company===c.name&&t.status!=='Concluída'))
   .sort((a,b)=>computeIntelScore(b).score-computeIntelScore(a).score)
   .slice(0,10);
 }
@@ -1694,7 +1696,7 @@ function markSuggestionContacted(companyName){
 function dailySuggestionsPanel(){
  const sug=dailySuggestions();
  const body=sug.length?`<div class="card table-wrap"><table class="table"><thead><tr><th>#</th><th>Empresa</th><th>Potencial</th><th>Score 🧠</th><th>Telefone</th><th>Última interação</th><th>Ações</th></tr></thead><tbody>${sug.map((c,i)=>suggestionRowHtml(c,i)).join('')}</tbody></table></div>`:`<div style="padding:14px 0;color:#8a94a3;font-size:13px">Você já contatou todas as empresas priorizadas hoje. 🎉</div>`;
- return `<div class="card panel" style="margin-top:16px;border:1px solid #edf0f4"><div class="panel-head"><h3>🎯 Sugestões de hoje — Inteligência Comercial</h3></div><p style="margin:0 0 10px;color:#667085;font-size:13px">As 10 empresas com maior <b>Score 🧠</b> que você ainda não contatou hoje. O score combina potencial de receita, engajamento nos últimos contatos (produtivo/improdutivo) e tempo parado na etapa atual — passe o mouse/toque no score pra ver o detalhe de cada empresa.</p>${body}</div>`;
+ return `<div class="card panel" style="margin-top:16px;border:1px solid #edf0f4"><div class="panel-head"><h3>🎯 Sugestões de hoje — Inteligência Comercial</h3></div><p style="margin:0 0 10px;color:#667085;font-size:13px">As 10 empresas com maior <b>Score 🧠</b> que <b>não têm nenhuma tarefa pendente marcada</b> (nem atrasada, nem futura) — ou seja, empresas que caíram do radar e merecem um próximo passo. Quem já tem tarefa agendada aparece na aba Tarefas normal, não aqui.</p>${body}</div>`;
 }
 function taskRowHtml(t){
  const contact=resolveTaskContact(t);
