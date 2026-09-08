@@ -66,7 +66,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 <header class="topbar">
   <button class="hamb" onclick="toggleSidebar()">☰</button><div class="title" id="topTitle">Dashboard</div>
   <div class="search"><span>⌕</span><input id="globalSearch" placeholder="Buscar empresas, contatos, oportunidades..." oninput="globalSearch(this.value)" autocomplete="off"></div>
-  <div class="top-actions"><button class="icon-btn" onclick="showPage('tarefas')">✅<em class="badge-dot" id="notifyCount">5</em></button><button class="icon-btn" onclick="showPage('agenda')">📅</button><button class="icon-btn" onclick="showPage('config')">?</button><div class="profile"><div class="avatar">FC</div><div class="who"><b>Fábio Chiesa</b><small>Gerente de Contas</small></div></div></div>
+  <div class="top-actions"><button class="icon-btn" id="voiceBtn" onclick="toggleVoiceCommand()" title="Comando de voz">🎤</button><button class="icon-btn" onclick="showPage('tarefas')">✅<em class="badge-dot" id="notifyCount">5</em></button><button class="icon-btn" onclick="showPage('agenda')">📅</button><button class="icon-btn" onclick="showPage('config')">?</button><div class="profile"><div class="avatar">FC</div><div class="who"><b>Fábio Chiesa</b><small>Gerente de Contas</small></div></div></div>
 </header>
 
 <div class="content">
@@ -120,6 +120,8 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 <div class="modal" id="contactDetailModal"><div class="modal-box"><div class="modal-head"><b id="contactDetailTitle">Contato</b><button class="icon-btn" onclick="closeContactDetails()">✕</button></div><div class="modal-body" id="contactDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeContactDetails()">Fechar</button><button class="btn danger" id="contactDetailDeleteBtn">Excluir</button><button class="btn primary" id="contactDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="contactOutcomeModal"><div class="modal-box" style="max-width:380px"><div class="modal-head"><b id="contactOutcomeTitle">Motivo</b><button class="icon-btn" onclick="closeContactOutcomeModal()">✕</button></div><div class="modal-body" id="contactOutcomeBody"></div></div></div>
 <div class="modal" id="taskResultModal"><div class="modal-box" style="max-width:420px"><div class="modal-head"><b>O que aconteceu nessa tarefa?</b><button class="icon-btn" onclick="closeTaskResultModal()">✕</button></div><div class="modal-body"><textarea id="taskResultInput" rows="4" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;box-sizing:border-box;font-family:inherit" placeholder="Ex: cliente pediu pra retornar semana que vem / não atendeu / fechou negócio na hora..."></textarea></div><div class="modal-foot"><button class="btn" onclick="closeTaskResultModal()">Pular</button><button class="btn primary" onclick="saveTaskResult()">Salvar</button></div></div></div>
+<div class="modal" id="voiceHelpModal"><div class="modal-box" style="max-width:480px"><div class="modal-head"><b>🎤 Comandos de voz</b><button class="icon-btn" onclick="document.getElementById('voiceHelpModal').classList.remove('open')">✕</button></div><div class="modal-body" id="voiceHelpBody" style="max-height:60vh;overflow:auto"></div><div class="modal-foot"><button class="btn primary" onclick="document.getElementById('voiceHelpModal').classList.remove('open')">Entendi</button></div></div></div>
+<div id="voiceListeningBanner" style="display:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;padding:10px 20px;border-radius:30px;z-index:600;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25)">🎤 Ouvindo... fale um comando</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -169,7 +171,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v15.88 · 2026-08-30 · Corrigido: "Sugestões de hoje" (Tarefas) e "Leads da semana" (Inteligência Comercial) não repetem mais empresas que já têm alguma tarefa pendente marcada (atrasada, de hoje ou futura) — essas já são acompanhadas na aba Tarefas normal. As sugestões agora mostram só quem realmente caiu do radar, sem tarefa nenhuma agendada';
+const APP_BUILD='v15.92 · 2026-08-30 · Novo: comando de voz 🎤 (gratuito, usa o reconhecimento nativo do Chrome) — botão de microfone na barra superior. Reconhece cerca de 90 frases diferentes: abrir qualquer módulo ("abrir pipeline", "ir para agenda"...), criar registros ("nova oportunidade", "nova tarefa"...), buscar ("buscar Netsul Telecom"), fechar janelas, e "ajuda" pra ver a lista completa de comandos';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -2023,6 +2025,7 @@ function renderMap(){
  document.getElementById('mapa').innerHTML=`<div class="page-head"><div><h1>Mapa de Prospecção</h1><p>Visualize leads e monte rotas de visita direto no Google Maps.</p></div><div class="actions"><select onchange="filterMapCity(this.value)" style="padding:9px 12px;border:1px solid var(--line);border-radius:8px"><option value="">Todas as cidades</option>${cities.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select><button class="btn primary" onclick="openForm('company')">＋ Adicionar lead</button></div></div><div class="card panel">${mapHTML()}<div class="legend"><span><i style="background:#2aa653"></i>Lead</span><span><i style="background:#2e75d7"></i>Em negociação</span><span><i style="background:#f1a619"></i>Proposta</span><span><i style="background:#df3434"></i>Fechado</span></div></div><div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>Empresas por região</h3><span style="font-size:12px;color:#667085">Marque as empresas e abra a rota (ou toque 📋 para copiar o link)</span></div><div id="mapRowsList">${rows}</div></div><div id="routeBar" style="display:${routeSelection.size?'flex':'none'};position:sticky;bottom:14px;margin-top:14px;background:#111827;color:#fff;border-radius:12px;padding:12px 16px;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.25);flex-wrap:wrap"><span id="routeBarText">${routeSelection.size} empresa(s) selecionada(s) para a rota</span><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small" onclick="clearRoute()">Limpar</button><button class="btn small" onclick="copyRouteLink()">📋 Copiar link</button><button class="btn small primary" onclick="openRoute()">🗺️ Abrir rota</button></div></div>`;
 }
 function renderIntelligence(){
+ const STALLED_DAYS=15;
  const staleClients=data.companies.filter(c=>c.status==='Cliente'&&!data.tasks.some(t=>t.company===c.name&&t.date>=today()));
  const riskClients=data.companies.filter(c=>{
   if(c.status!=='Cliente')return false;
@@ -2033,12 +2036,14 @@ function renderIntelligence(){
  const pendingProposals=data.proposals.filter(p=>{const d=proposalDueInfo(p);return d&&(d.cls==='orange'||d.cls==='red')});
  const highValueDeals=data.deals.filter(d=>d.value>=50000&&d.stage!=='Fechado'&&d.stage!=='Perdido').sort((a,b)=>b.value-a.value);
  const noNextStep=data.companies.filter(c=>!data.tasks.some(t=>t.company===c.name&&t.status!=='Concluída'));
+ const stalledDeals=data.deals.filter(d=>d.stage!=='Fechado'&&d.stage!=='Perdido'&&d.stageEnteredAt).map(d=>({...d,daysStale:Math.floor((new Date(today()+'T00:00:00')-new Date(d.stageEnteredAt+'T00:00:00'))/86400000)})).filter(d=>d.daysStale>=STALLED_DAYS).sort((a,b)=>b.daysStale-a.daysStale);
  const radarNew=RADAR_PROSPECCAO.filter(r=>!data.companies.some(c=>c.name.toLowerCase()===r.name.toLowerCase()));
  const radarByRegion={};
  radarNew.forEach(r=>{(radarByRegion[r.region]=radarByRegion[r.region]||[]).push(r)});
- document.getElementById('inteligencia').innerHTML=`<div class="page-head"><div><h1>Inteligência Comercial <span class="page-purpose">🧠 o que fazer agora</span></h1><p>Alertas e oportunidades que merecem sua atenção.</p></div></div>${goalPlanPanel()}<div class="grid stat-grid">${reportCard('Clientes sem contato +30 dias',staleClients.length,"openDashboardDetails('staleClients')")}${reportCard('⚠️ Clientes em risco (contato ruim)',riskClients.length,"openDashboardDetails('riskClients')")}${reportCard('Propostas próximas do vencimento',pendingProposals.length,"openDashboardDetails('proposalsDue')")}${reportCard('Oportunidades de alto valor',money(highValueDeals.reduce((a,d)=>a+d.value,0)),"openDashboardDetails('highValueDeals')")}${reportCard('Empresas sem próximo passo',noNextStep.length,"openDashboardDetails('noNextStep')")}</div><div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>Recomendações</h3></div>${[
+ document.getElementById('inteligencia').innerHTML=`<div class="page-head"><div><h1>Inteligência Comercial <span class="page-purpose">🧠 o que fazer agora</span></h1><p>Alertas e oportunidades que merecem sua atenção.</p></div></div>${goalPlanPanel()}<div class="grid stat-grid">${reportCard('Clientes sem contato +30 dias',staleClients.length,"openDashboardDetails('staleClients')")}${reportCard('⚠️ Clientes em risco (contato ruim)',riskClients.length,"openDashboardDetails('riskClients')")}${reportCard('🐌 Oportunidades paradas (+'+STALLED_DAYS+'d)',stalledDeals.length,"openDashboardDetails('stalledDeals')")}${reportCard('Propostas próximas do vencimento',pendingProposals.length,"openDashboardDetails('proposalsDue')")}${reportCard('Oportunidades de alto valor',money(highValueDeals.reduce((a,d)=>a+d.value,0)),"openDashboardDetails('highValueDeals')")}${reportCard('Empresas sem próximo passo',noNextStep.length,"openDashboardDetails('noNextStep')")}</div><div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>Recomendações</h3></div>${[
  {ic:'🔴',title:'Prioridade alta',desc:staleClients.length?`${staleClients.length} cliente(s) sem contato há mais de 30 dias${staleClients.length?': '+staleClients.slice(0,2).map(c=>esc(c.name)).join(', ')+(staleClients.length>2?'...':''):''}.`:'Nenhum cliente esquecido no momento — parabéns!',key:'staleClients'},
  {ic:'⚠️',title:'Risco de perder cliente',desc:riskClients.length?`${riskClients.length} cliente(s) com os 2 últimos contatos improdutivos seguidos — sinal de insatisfação antes do silêncio total: ${riskClients.slice(0,2).map(c=>esc(c.name)).join(', ')}${riskClients.length>2?'...':''}.`:'Nenhum cliente com contatos improdutivos seguidos no momento.',key:'riskClients'},
+ {ic:'🐌',title:'Oportunidades esfriando',desc:stalledDeals.length?`${stalledDeals.length} oportunidade(s) parada(s) há mais de ${STALLED_DAYS} dias na mesma etapa — a mais parada: ${esc(stalledDeals[0].company)} (${stalledDeals[0].daysStale} dias em "${stalledDeals[0].stage}").`:`Nenhuma oportunidade parada há mais de ${STALLED_DAYS} dias — funil andando bem.`,key:'stalledDeals'},
  {ic:'🟠',title:'Propostas',desc:pendingProposals.length?`${pendingProposals.length} proposta(s) vencendo em breve ou já vencida(s). Revise antes que esfriem.`:'Nenhuma proposta com vencimento próximo.',key:'proposalsDue'},
  {ic:'🟢',title:'Oportunidades de alto valor',desc:highValueDeals.length?`${highValueDeals.length} oportunidade(s) acima de R$ 50.000 em aberto, somando ${money(highValueDeals.reduce((a,d)=>a+d.value,0))}.`:'Nenhuma oportunidade de alto valor em aberto no momento.',key:'highValueDeals'},
  {ic:'🔵',title:'Sem próximo passo',desc:noNextStep.length?`${noNextStep.length} empresa(s) sem nenhuma tarefa futura agendada — risco de ficarem esquecidas.`:'Todas as empresas têm um próximo passo agendado.',key:'noNextStep'}
@@ -2214,6 +2219,20 @@ function openDashboardDetails(type){
         c.phone||'Sem telefone',
         `${followupBadge(c)} ${actionIcons(c.phone,c.name)}`
       )).join('')}` : emptyDetail('Nenhum cliente com contatos improdutivos seguidos no momento.');
+  }
+  else if(type==='stalledDeals'){
+    const STALLED_DAYS=15;
+    items=data.deals.filter(d=>d.stage!=='Fechado'&&d.stage!=='Perdido'&&d.stageEnteredAt).map(d=>({...d,daysStale:Math.floor((new Date(today()+'T00:00:00')-new Date(d.stageEnteredAt+'T00:00:00'))/86400000)})).filter(d=>d.daysStale>=STALLED_DAYS).sort((a,b)=>b.daysStale-a.daysStale);
+    heading='🐌 Oportunidades paradas há '+STALLED_DAYS+'+ dias';
+    destination='pipeline';
+    body.innerHTML = items.length ? `
+      <p style="margin-top:0;color:#667085">Oportunidades em aberto que não mudam de etapa há um bom tempo — provável sinal de que esfriaram. Vale retomar contato ou considerar marcar como perdida (com o motivo) se realmente não tiver mais chance.</p>
+      ${items.map(d=>detailItem(
+        d.stage,
+        d.company,
+        d.title+' — parada há '+d.daysStale+' dia(s)',
+        `<b>${money(d.value)}</b> <span class="tag orange">${d.prob}%</span>`
+      )).join('')}` : emptyDetail('Nenhuma oportunidade parada há mais de '+STALLED_DAYS+' dias.');
   }
   else if(type==='proposalsDue'){
     items=data.proposals.filter(p=>{const d=proposalDueInfo(p);return d&&(d.cls==='orange'||d.cls==='red')});
@@ -2402,13 +2421,14 @@ function openForm(type,id=null,prefill=null){
 
 function scheduleNextStepForDeal(deal, oldStage, isNew){
  if(!deal || deal.stage==='Fechado') return;
- const offsets={'Qualificação':1,'Reunião':1,'Proposta':2,'Negociação':1};
+ const offsets={'Primeiro Contato':2,'Qualificação':3,'Reunião':3,'Proposta':3,'Negociação':2};
+ const titles={'Primeiro Contato':'Confirmar interesse','Qualificação':'Agendar reunião','Reunião':'Enviar proposta','Proposta':'Cobrar retorno da proposta','Negociação':'Fechar condições'};
  const days=offsets[deal.stage];
  if(!days) return;
  const exists=data.tasks.some(t=>t.dealId===deal.id && t.status!=='Concluída' && t.type==='Tarefa');
  if(exists) return;
  const d=new Date(); d.setDate(d.getDate()+days);
- data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),dealId:deal.id,title:'Follow-up: '+deal.title,company:deal.company,date:d.toISOString().slice(0,10),time:'09:00',type:deal.stage==='Proposta'?'Ligação':'Tarefa',status:'Pendente'});
+ data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),dealId:deal.id,title:(titles[deal.stage]||'Follow-up')+': '+deal.title,company:deal.company,date:d.toISOString().slice(0,10),time:'09:00',type:deal.stage==='Proposta'?'Ligação':'Tarefa',status:'Pendente'});
 }
 function createDealForProposal(proposal){
  if(!proposal||!proposal.company)return '';
@@ -2432,13 +2452,32 @@ function syncDealForProposal(proposal){
   return createDealForProposal(proposal);
  }
 }
+function scheduleProposalReminder(proposal){
+ if(!proposal||!proposal.date||!proposal.company)return '';
+ if(proposal.status==='Aprovada'||proposal.status==='Recusada')return '';
+ const due=new Date(proposal.date+'T00:00:00');
+ due.setDate(due.getDate()-2);
+ let dateStr=due.toISOString().slice(0,10);
+ const clamped=dateStr<today();
+ if(clamped)dateStr=today();
+ const existing=data.tasks.find(t=>t.proposalId===proposal.id&&t.status!=='Concluída');
+ if(existing){
+  if(existing.date===dateStr)return '';
+  existing.date=dateStr;
+  return clamped?' · lembrete de cobrança reagendado para hoje':' · lembrete de cobrança reagendado para '+fmtDateBR(due);
+ }
+ data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),proposalId:proposal.id,title:'Cobrar retorno da proposta: '+(proposal.item||'sem descrição'),company:proposal.company,date:dateStr,time:'09:00',type:'Ligação',status:'Pendente'});
+ return clamped?' · lembrete de cobrança criado para hoje (vencimento já está próximo/passado)':' · lembrete de cobrança criado para '+fmtDateBR(due)+' (2 dias antes do vencimento)';
+}
 function handleProposalAutomation(proposal,previousStatus){ if(!proposal)return;
  if(proposal.status==='Aprovada' && previousStatus!=='Aprovada'){
+  data.tasks.filter(t=>t.proposalId===proposal.id&&t.status!=='Concluída').forEach(t=>t.status='Concluída');
   data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),title:'Fechamento/Onboarding: '+proposal.item,company:proposal.company,date:today(),time:'10:00',type:'Tarefa',status:'Pendente'});
   toast('Proposta aprovada — tarefa de fechamento/onboarding criada automaticamente');
   return;
  }
  if(proposal.status==='Recusada' && previousStatus!=='Recusada'){
+  data.tasks.filter(t=>t.proposalId===proposal.id&&t.status!=='Concluída').forEach(t=>t.status='Concluída');
   showConfirm('Proposta marcada como recusada. Criar uma tarefa de novo follow-up com essa empresa em 30 dias?',()=>{
    const next=new Date();next.setDate(next.getDate()+30);
    data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),title:'Novo follow-up após proposta recusada',company:proposal.company,date:next.toISOString().slice(0,10),time:'10:00',type:'Tarefa',status:'Pendente'});
@@ -2539,6 +2578,7 @@ function saveForm(type,collection,id){
      }
      if(type==='proposal' && old.status!==obj.status) handleProposalAutomation(arr[i],old.status);
      if(type==='proposal') extraMsg+=syncDealForProposal(arr[i]);
+     if(type==='proposal') extraMsg+=scheduleProposalReminder(arr[i]);
    }
  }else{
    obj.id=Date.now();
@@ -2546,6 +2586,7 @@ function saveForm(type,collection,id){
    data[collection].push(obj);
    if(type==='deal') handleDealAutomation(obj,null,true);
    if(type==='proposal') extraMsg+=createDealForProposal(obj);
+   if(type==='proposal') extraMsg+=scheduleProposalReminder(obj);
  }
  if(type==='company' && !id && pendingReturnForm){
   const rt=pendingReturnForm,rid=pendingReturnId,newName=obj.name;
@@ -2682,6 +2723,7 @@ function dropDeal(e,stage){
   d.stage=stage;d.prob=stage==='Fechado'?100:stage==='Perdido'?0:d.prob;
   if(stage==='Fechado'&&!wasClosed)d.closedAt=today();
   if(stage!==prevStage)d.stageEnteredAt=today();
+  if(stage!==prevStage&&stage!=='Perdido')handleDealAutomation(d,prevStage,false);
   save();
   if(stage==='Perdido'){openLossReasonMenu(id)}
   else toast('Oportunidade movida para '+stage);
@@ -2701,6 +2743,96 @@ function globalSearch(q){
  data.tasks.filter(x=>JSON.stringify(x).toLowerCase().includes(q)).slice(0,5).forEach(x=>results.push({type:'Tarefa',title:x.title,sub:[x.company,x.date].filter(Boolean).join(' • '),page:'tarefas'}));
  box.innerHTML=results.length?results.map((r,i)=>`<div class="search-result" onclick="showPage('${r.page}');document.getElementById('globalResults').classList.remove('show')"><b>${esc(r.title)}</b><small>${esc(r.type)} • ${esc(r.sub)}</small></div>`).join(''):`<div class="search-empty">Nenhum resultado encontrado.</div>`;
  box.classList.add('show');
+}
+// ===== Comando de voz (gratuito, via Web Speech API do navegador) =====
+const VOICE_COMMANDS=[
+ {phrases:['abrir dashboard','ir para o dashboard','ir para dashboard','mostrar dashboard','tela inicial','pagina inicial','página inicial','inicio','início'],action:()=>showPage('dashboard'),label:'Abrir Dashboard'},
+ {phrases:['abrir empresas','ir para empresas','ir para as empresas','mostrar empresas','lista de empresas'],action:()=>showPage('empresas'),label:'Abrir Empresas'},
+ {phrases:['abrir contatos','ir para contatos','ir para os contatos','mostrar contatos','lista de contatos'],action:()=>showPage('contatos'),label:'Abrir Contatos'},
+ {phrases:['abrir oportunidades','ir para oportunidades','ir para as oportunidades','mostrar oportunidades'],action:()=>showPage('oportunidades'),label:'Abrir Oportunidades'},
+ {phrases:['abrir pipeline','ir para o pipeline','ir para pipeline','mostrar pipeline','abrir funil','ir para o funil','mostrar funil'],action:()=>showPage('pipeline'),label:'Abrir Pipeline'},
+ {phrases:['abrir agenda','ir para a agenda','ir para agenda','mostrar agenda','abrir calendario','abrir calendário','ir para o calendario','ir para o calendário'],action:()=>showPage('agenda'),label:'Abrir Agenda'},
+ {phrases:['abrir tarefas','ir para tarefas','ir para as tarefas','mostrar tarefas','lista de tarefas'],action:()=>showPage('tarefas'),label:'Abrir Tarefas'},
+ {phrases:['abrir propostas','ir para propostas','ir para as propostas','mostrar propostas'],action:()=>showPage('propostas'),label:'Abrir Propostas'},
+ {phrases:['abrir produtos','ir para produtos','ir para os produtos','mostrar produtos'],action:()=>showPage('produtos'),label:'Abrir Produtos'},
+ {phrases:['abrir relatorios','abrir relatórios','ir para relatorios','ir para relatórios','mostrar relatorios','mostrar relatórios'],action:()=>showPage('relatorios'),label:'Abrir Relatórios'},
+ {phrases:['abrir mapa','ir para o mapa','mapa de prospeccao','mapa de prospecção','abrir mapa de prospeccao','abrir mapa de prospecção'],action:()=>showPage('mapa'),label:'Abrir Mapa de Prospecção'},
+ {phrases:['abrir inteligencia comercial','abrir inteligência comercial','ir para inteligencia comercial','ir para inteligência comercial','abrir inteligencia','abrir inteligência','mostrar inteligencia','mostrar inteligência'],action:()=>showPage('inteligencia'),label:'Abrir Inteligência Comercial'},
+ {phrases:['abrir configuracoes','abrir configurações','ir para configuracoes','ir para configurações','mostrar configuracoes','mostrar configurações','abrir ajustes'],action:()=>showPage('config'),label:'Abrir Configurações'},
+ {phrases:['nova empresa','criar empresa','adicionar empresa','cadastrar empresa','cadastrar nova empresa'],action:()=>openForm('company'),label:'Nova empresa'},
+ {phrases:['novo contato','criar contato','adicionar contato','cadastrar contato','cadastrar novo contato'],action:()=>openForm('contact'),label:'Novo contato'},
+ {phrases:['nova oportunidade','criar oportunidade','adicionar oportunidade','cadastrar oportunidade','cadastrar nova oportunidade'],action:()=>openForm('deal'),label:'Nova oportunidade'},
+ {phrases:['nova tarefa','criar tarefa','adicionar tarefa','cadastrar tarefa','cadastrar nova tarefa'],action:()=>openForm('task'),label:'Nova tarefa'},
+ {phrases:['nova proposta','criar proposta','adicionar proposta','cadastrar proposta','cadastrar nova proposta'],action:()=>openForm('proposal'),label:'Nova proposta'},
+ {phrases:['novo produto','criar produto','adicionar produto','cadastrar produto'],action:()=>openForm('product'),label:'Novo produto'},
+ {phrases:['agendar reuniao','agendar reunião','nova reuniao','nova reunião','criar reuniao','criar reunião','marcar reuniao','marcar reunião'],action:()=>openForm('event'),label:'Agendar reunião'},
+ {phrases:['fechar','fechar janela','fechar tela','cancelar','voltar'],action:()=>{['modal','companyDetailModal','dealDetailModal','taskDetailModal','contactDetailModal','dashboardDetailModal','confirmModal','contactOutcomeModal','taskResultModal','weekContactsModal'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('open')})},label:'Fechar janela aberta'},
+ {phrases:['ajuda','quais comandos','quais os comandos','o que eu posso falar','lista de comandos','comandos de voz','o que posso dizer'],action:()=>showVoiceHelp(),label:'Ver esta lista de comandos'},
+];
+let _voiceRecognition=null;
+function normalizeVoiceText(s){
+ return String(s||'').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[.,!?]/g,'');
+}
+function toggleVoiceCommand(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){toast('Seu navegador não suporta comando de voz. Funciona no Chrome (Windows e Android).');return}
+ if(_voiceRecognition){_voiceRecognition.stop();return}
+ _voiceRecognition=new SR();
+ _voiceRecognition.lang='pt-BR';
+ _voiceRecognition.continuous=false;
+ _voiceRecognition.interimResults=false;
+ _voiceRecognition.onstart=()=>{
+  document.getElementById('voiceListeningBanner').style.display='block';
+  document.getElementById('voiceBtn').style.background='#fee2e2';
+ };
+ _voiceRecognition.onresult=(event)=>{
+  const transcript=normalizeVoiceText(event.results[0][0].transcript);
+  runVoiceCommand(transcript);
+ };
+ _voiceRecognition.onerror=(event)=>{
+  if(event.error!=='no-speech'&&event.error!=='aborted')toast('Não consegui ouvir — tente de novo');
+ };
+ _voiceRecognition.onend=()=>{
+  document.getElementById('voiceListeningBanner').style.display='none';
+  document.getElementById('voiceBtn').style.background='';
+  _voiceRecognition=null;
+ };
+ _voiceRecognition.start();
+}
+function runVoiceCommand(transcript){
+ // busca por voz: "buscar/pesquisar/procurar X"
+ const searchPrefixes=['buscar ','pesquisar ','procurar ','encontrar '];
+ for(const p of searchPrefixes){
+  if(transcript.startsWith(normalizeVoiceText(p))){
+   const q=transcript.slice(p.length).trim();
+   if(q){
+    document.getElementById('globalSearch').value=q;
+    globalSearch(q);
+    toast('🎤 Buscando: "'+q+'"');
+    return;
+   }
+  }
+ }
+ // tenta achar o comando mais específico (frase mais longa) que bate
+ let best=null,bestLen=0;
+ VOICE_COMMANDS.forEach(cmd=>{
+  cmd.phrases.forEach(p=>{
+   const np=normalizeVoiceText(p);
+   if(transcript.includes(np)&&np.length>bestLen){best=cmd;bestLen=np.length}
+  });
+ });
+ if(best){toast('🎤 '+best.label);best.action();}
+ else toast('🎤 Não entendi: "'+transcript+'" — toque no microfone e diga "ajuda" pra ver os comandos');
+}
+function showVoiceHelp(){
+ const groups=[
+  {title:'Navegação',items:['"abrir empresas" / "abrir contatos" / "abrir oportunidades"','"abrir pipeline" / "abrir agenda" / "abrir tarefas"','"abrir propostas" / "abrir produtos" / "abrir relatórios"','"abrir mapa" / "abrir inteligência comercial"','"abrir configurações" / "abrir dashboard"']},
+  {title:'Criar novo',items:['"nova empresa" / "novo contato" / "nova oportunidade"','"nova tarefa" / "nova proposta" / "novo produto"','"agendar reunião"']},
+  {title:'Buscar',items:['"buscar [nome]" — ex: "buscar Netsul Telecom"']},
+  {title:'Outros',items:['"fechar" — fecha qualquer janela aberta','"ajuda" — mostra esta lista']}
+ ];
+ document.getElementById('voiceHelpBody').innerHTML=groups.map(g=>`<div style="margin-bottom:14px"><b style="font-size:13px;color:#1e40af">${g.title}</b>${g.items.map(i=>`<div style="padding:6px 0;border-bottom:1px solid #f1f3f5;font-size:13.5px">${i}</div>`).join('')}</div>`).join('');
+ document.getElementById('voiceHelpModal').classList.add('open');
 }
 function pipelineMetric(v){toast(v==='count'?'Exibindo quantidade por etapa':'Exibindo valor por etapa')}
 function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('mobile-open');document.getElementById('sidebarBackdrop').classList.toggle('show')}
@@ -2828,6 +2960,14 @@ if(getSyncConfig()){
 (function migrateClosedAt(){
  let changed=false;
  data.deals.forEach(d=>{if(d.stage==='Fechado'&&!d.closedAt){d.closedAt=today();changed=true}});
+ if(changed)save();
+})();
+(function migrateStageEnteredAt(){
+ // oportunidades criadas antes de guardarmos "há quanto tempo está nessa etapa"
+ // ganham a data de hoje como ponto de partida — evita que apareçam como
+ // "paradas há anos" sem isso refletir a realidade
+ let changed=false;
+ data.deals.forEach(d=>{if(d.stage!=='Fechado'&&d.stage!=='Perdido'&&!d.stageEnteredAt){d.stageEnteredAt=today();changed=true}});
  if(changed)save();
 })();
 (function migrateFloatIds(){
