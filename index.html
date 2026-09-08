@@ -171,7 +171,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v15.94 · 2026-08-30 · Destaque de card virou escolha de cor: toque na bandeira 🏳️ (no Pipeline ou na Agenda) e escolha entre 🔴 Vermelho, 🟠 Laranja, 🟢 Verde ou 🔵 Azul — ou remova o destaque. Antes era só liga/desliga vermelho; destaques marcados em versões antigas continuam funcionando (convertidos pra vermelho automaticamente)';
+const APP_BUILD='v15.97 · 2026-08-30 · Corrigido pra ficar como você pediu: removido o quadro de Configurações — agora o seletor "Reagendar: 7d/15d/30d" aparece direto dentro do card de cada tarefa "Manter contato" criada automaticamente, na aba Tarefas. Cada tarefa pode ter seu próprio intervalo, ajustado com 1 toque';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -1721,7 +1721,8 @@ function taskRowHtml(t){
  const contact=resolveTaskContact(t);
  const contactName=contact?contact.name:(t.contact?String(t.contact).split(' — ')[0]:'');
  const cel=contact?.cel||'',tel=contact?.tel||'';
- return `<tr><td>${t.date}</td><td>${t.time}</td><td>${t.company?`<small style="display:block;color:#8a94a3;font-weight:600">${esc(t.company)}</small>`:''}<b><a href="#" onclick="event.preventDefault();showTaskDetails(${t.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(t.title)}</a></b></td><td>${esc(t.company)}</td><td>${esc(contactName)}</td><td>${esc(cel||tel)}</td><td>${t.type}</td><td>${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)} <button class="btn small success" onclick="completeTask(${t.id})">${t.status==='Concluída'?'Reabrir':'Concluir'}</button> <button class="btn small" onclick="quickTask('${String(t.company).replace(/'/g,"’")}')">➕ Nova tarefa</button> <button class="btn small" onclick="editItem('task',${t.id})">Editar</button>${t.status==='Concluída'?` <button class="btn small danger" onclick="del('tasks',${t.id})">Excluir</button>`:''}</td></tr>`;
+ const followUpPicker=(t.autoFollowUp&&t.status!=='Concluída')?`<div style="margin-top:4px;display:flex;gap:4px;align-items:center" onclick="event.stopPropagation()"><small style="color:#8a94a3">Reagendar:</small>${[7,15,30].map(d=>`<button class="btn small ${(t.followUpDays||7)===d?'primary':''}" style="padding:2px 8px;font-size:11px" onclick="rescheduleAutoTask(${t.id},${d})">${d}d</button>`).join('')}</div>`:'';
+ return `<tr><td>${t.date}</td><td>${t.time}</td><td>${t.company?`<small style="display:block;color:#8a94a3;font-weight:600">${esc(t.company)}</small>`:''}<b><a href="#" onclick="event.preventDefault();showTaskDetails(${t.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(t.title)}</a></b>${followUpPicker}</td><td>${esc(t.company)}</td><td>${esc(contactName)}</td><td>${esc(cel||tel)}</td><td>${t.type}</td><td>${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)} <button class="btn small success" onclick="completeTask(${t.id})">${t.status==='Concluída'?'Reabrir':'Concluir'}</button> <button class="btn small" onclick="quickTask('${String(t.company).replace(/'/g,"’")}')">➕ Nova tarefa</button> <button class="btn small" onclick="editItem('task',${t.id})">Editar</button>${t.status==='Concluída'?` <button class="btn small danger" onclick="del('tasks',${t.id})">Excluir</button>`:''}</td></tr>`;
 }
 function taskGroupTable(list,emptyMsg){
  return list.length?`<div class="card table-wrap"><table class="table" data-table-group="tarefas"><thead><tr><th data-col="0">Data</th><th data-col="1">Hora</th><th data-col="2">Tarefa</th><th data-col="3">Empresa</th><th data-col="4">Contato</th><th data-col="5">Tel</th><th data-col="6">Tipo</th><th data-col="7">Ações</th></tr></thead><tbody>${list.map(taskRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
@@ -2537,9 +2538,31 @@ function completeTask(id){
  const wasCompleting=t.status!=='Concluída';
  t.status=t.status==='Concluída'?'Pendente':'Concluída';
  if(t.status==='Concluída' && t.dealId){const d=data.deals.find(x=>x.id===t.dealId);if(d){const next=new Date();next.setDate(next.getDate()+2);d.next=next.toISOString().slice(0,10)}}
+ let followUpMsg='';
+ if(wasCompleting)followUpMsg=scheduleKeepInTouchTask(t);
  save();
- toast(t.status==='Concluída'?'Tarefa concluída':'Tarefa reaberta');
+ toast(t.status==='Concluída'?('Tarefa concluída'+followUpMsg):'Tarefa reaberta');
  if(wasCompleting)openTaskResultModal(id);
+}
+function scheduleKeepInTouchTask(t){
+ if(!t||!t.company)return '';
+ const hasPending=data.tasks.some(x=>x.company===t.company&&x.status!=='Concluída');
+ if(hasPending)return ''; // já tem algo pendente pra essa empresa, não duplica
+ const days=7;
+ const next=new Date();
+ next.setDate(next.getDate()+days);
+ data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),title:'Manter contato',company:t.company,contact:t.contact||'',date:next.toISOString().slice(0,10),time:'09:00',type:t.type||'Ligação',status:'Pendente',autoFollowUp:true,followUpDays:days});
+ return ' · próximo contato agendado para '+fmtDateBR(next)+' ('+days+' dias), pra não perder o fio';
+}
+function rescheduleAutoTask(id,days){
+ const t=data.tasks.find(x=>x.id===id);
+ if(!t)return;
+ const next=new Date();
+ next.setDate(next.getDate()+days);
+ t.date=next.toISOString().slice(0,10);
+ t.followUpDays=days;
+ save();
+ toast('Reagendado para '+fmtDateBR(next)+' ('+days+' dias)');
 }
 let _pendingTaskResultId=null;
 function lastTaskResultForCompany(companyName,excludeId){
