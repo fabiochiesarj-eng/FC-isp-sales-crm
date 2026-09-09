@@ -119,7 +119,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 <div class="modal" id="dealDetailModal"><div class="modal-box"><div class="modal-head"><b id="dealDetailTitle">Oportunidade</b><button class="icon-btn" onclick="closeDealDetails()">✕</button></div><div class="modal-body" id="dealDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeDealDetails()">Fechar</button><button class="btn danger" id="dealDetailDeleteBtn">🗑 Excluir</button><button class="btn primary" id="dealDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="contactDetailModal"><div class="modal-box"><div class="modal-head"><b id="contactDetailTitle">Contato</b><button class="icon-btn" onclick="closeContactDetails()">✕</button></div><div class="modal-body" id="contactDetailBody"></div><div class="modal-foot"><button class="btn" onclick="closeContactDetails()">Fechar</button><button class="btn danger" id="contactDetailDeleteBtn">Excluir</button><button class="btn primary" id="contactDetailEditBtn">Editar</button></div></div></div>
 <div class="modal" id="contactOutcomeModal"><div class="modal-box" style="max-width:380px"><div class="modal-head"><b id="contactOutcomeTitle">Motivo</b><button class="icon-btn" onclick="closeContactOutcomeModal()">✕</button></div><div class="modal-body" id="contactOutcomeBody"></div></div></div>
-<div class="modal" id="taskResultModal"><div class="modal-box" style="max-width:420px"><div class="modal-head"><b>O que aconteceu nessa tarefa?</b><button class="icon-btn" onclick="closeTaskResultModal()">✕</button></div><div class="modal-body"><textarea id="taskResultInput" rows="4" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;box-sizing:border-box;font-family:inherit" placeholder="Ex: cliente pediu pra retornar semana que vem / não atendeu / fechou negócio na hora..."></textarea></div><div class="modal-foot"><button class="btn" onclick="closeTaskResultModal()">Pular</button><button class="btn primary" onclick="saveTaskResult()">Salvar</button></div></div></div>
+<div class="modal" id="taskResultModal"><div class="modal-box" style="max-width:420px"><div class="modal-head"><b>O que aconteceu nessa tarefa?</b><button class="icon-btn" onclick="closeTaskResultModal()">✕</button></div><div class="modal-body"><textarea id="taskResultInput" rows="4" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;box-sizing:border-box;font-family:inherit" placeholder="Ex: cliente pediu pra retornar semana que vem / não atendeu / fechou negócio na hora..."></textarea><div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><b style="font-size:13px">Quando será o próximo contato?</b><div id="taskResultFollowUpChoice" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"></div></div></div><div class="modal-foot"><button class="btn" onclick="closeTaskResultModal()">Pular</button><button class="btn primary" onclick="saveTaskResult()">Salvar</button></div></div></div>
 <div class="modal" id="voiceHelpModal"><div class="modal-box" style="max-width:480px"><div class="modal-head"><b>🎤 Comandos de voz</b><button class="icon-btn" onclick="document.getElementById('voiceHelpModal').classList.remove('open')">✕</button></div><div class="modal-body" id="voiceHelpBody" style="max-height:60vh;overflow:auto"></div><div class="modal-foot"><button class="btn primary" onclick="document.getElementById('voiceHelpModal').classList.remove('open')">Entendi</button></div></div></div>
 <div id="voiceListeningBanner" style="display:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;padding:10px 20px;border-radius:30px;z-index:600;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25)">🎤 Ouvindo... fale um comando</div>
 <div class="toast" id="toast"></div>
@@ -171,7 +171,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v15.97 · 2026-08-30 · Corrigido pra ficar como você pediu: removido o quadro de Configurações — agora o seletor "Reagendar: 7d/15d/30d" aparece direto dentro do card de cada tarefa "Manter contato" criada automaticamente, na aba Tarefas. Cada tarefa pode ter seu próprio intervalo, ajustado com 1 toque';
+const APP_BUILD='v16.00 · 2026-08-30 · Corrigido o bug real do "não abre a nova tarefa": antes, o sistema decidia sozinho pular a criação quando a empresa já tinha algo pendente (silenciosamente, sem avisar) — por isso quase nunca abria. Agora, ao concluir qualquer tarefa (Tarefas ou Agenda), a própria caixa "O que aconteceu?" já vem com o quadro "Quando será o próximo contato? [7 dias] [15 dias] [30 dias] [Não agendar]" — você sempre escolhe, e a ficha da nova tarefa abre sozinha assim que você decide (Salvar ou Pular)';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -1721,7 +1721,7 @@ function taskRowHtml(t){
  const contact=resolveTaskContact(t);
  const contactName=contact?contact.name:(t.contact?String(t.contact).split(' — ')[0]:'');
  const cel=contact?.cel||'',tel=contact?.tel||'';
- const followUpPicker=(t.autoFollowUp&&t.status!=='Concluída')?`<div style="margin-top:4px;display:flex;gap:4px;align-items:center" onclick="event.stopPropagation()"><small style="color:#8a94a3">Reagendar:</small>${[7,15,30].map(d=>`<button class="btn small ${(t.followUpDays||7)===d?'primary':''}" style="padding:2px 8px;font-size:11px" onclick="rescheduleAutoTask(${t.id},${d})">${d}d</button>`).join('')}</div>`:'';
+ const followUpPicker=(t.autoFollowUp&&t.status!=='Concluída')?`<div style="margin-top:4px;display:flex;gap:4px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()"><small style="color:#8a94a3">Reagendar:</small>${followUpButtonsHtml(t)}</div>`:'';
  return `<tr><td>${t.date}</td><td>${t.time}</td><td>${t.company?`<small style="display:block;color:#8a94a3;font-weight:600">${esc(t.company)}</small>`:''}<b><a href="#" onclick="event.preventDefault();showTaskDetails(${t.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(t.title)}</a></b>${followUpPicker}</td><td>${esc(t.company)}</td><td>${esc(contactName)}</td><td>${esc(cel||tel)}</td><td>${t.type}</td><td>${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)} <button class="btn small success" onclick="completeTask(${t.id})">${t.status==='Concluída'?'Reabrir':'Concluir'}</button> <button class="btn small" onclick="quickTask('${String(t.company).replace(/'/g,"’")}')">➕ Nova tarefa</button> <button class="btn small" onclick="editItem('task',${t.id})">Editar</button>${t.status==='Concluída'?` <button class="btn small danger" onclick="del('tasks',${t.id})">Excluir</button>`:''}</td></tr>`;
 }
 function taskGroupTable(list,emptyMsg){
@@ -1766,6 +1766,7 @@ function showTaskDetails(id){
    ${field('Celular',cel)}
    ${field('Telefone fixo',tel)}
  </div>
+ ${(t.autoFollowUp&&t.status!=='Concluída')?`<div class="field" style="margin-top:6px;background:#eff6ff;border-radius:8px;padding:10px"><label>🔄 Reagendar este contato</label><div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">${[7,15,30].map(d=>`<button class="btn small ${(t.followUpDays||7)===d?'primary':''}" onclick="rescheduleAutoTask(${t.id},${d})">${d} dias</button>`).join('')}<button class="btn small danger" onclick="cancelAutoFollowUp(${t.id})">Não agendar</button></div></div>`:''}
  ${t.notes?`<div class="field" style="margin-top:6px"><label>Anotações</label><div style="padding:8px 0;white-space:pre-wrap">${esc(t.notes)}</div></div>`:''}
  ${t.resultado?`<div class="field" style="margin-top:6px;background:#f0fdf4;border-radius:8px;padding:0 10px"><label>✅ O que aconteceu</label><div style="padding:8px 0;white-space:pre-wrap">${esc(t.resultado)}</div></div>`:''}
  <div style="display:flex;gap:6px;margin-top:6px">${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)}</div>`;
@@ -1857,7 +1858,7 @@ function renderAgenda(){
   const ev=data.events.filter(e=>e.date===date);
   const tk=data.tasks.filter(t=>t.date===date);
   const evHtml=ev.map(e=>`<div class="event" draggable="true" style="cursor:grab;${e.destaque?'background:'+HIGHLIGHT_COLORS[e.destaque].bg+';color:'+HIGHLIGHT_COLORS[e.destaque].text+';':''}" ondragstart="event.dataTransfer.setData('text/plain','event:${e.id}')" onclick="editItem('event',${e.id})" title="Reunião — toque para editar, arraste para outro dia">📅 ${e.time} ${esc(e.title)} <span onclick="event.stopPropagation();openDestaqueMenu('events',${e.id})" title="Destacar card" style="float:right;opacity:.7">${e.destaque?HIGHLIGHT_COLORS[e.destaque].dot:'🏳️'}</span> <span onclick="event.stopPropagation();del('events',${e.id})" title="Excluir" style="float:right;opacity:.6;margin-right:4px">🗑</span></div>`).join('');
-  const tkHtml=tk.map(t=>`<div class="event" draggable="true" style="cursor:grab;background:${t.destaque?HIGHLIGHT_COLORS[t.destaque].bg:t.status==='Concluída'?'#e8f7ed':'#fff5df'};color:${t.destaque?HIGHLIGHT_COLORS[t.destaque].text:t.status==='Concluída'?'#17813a':'#a86b00'}" ondragstart="event.dataTransfer.setData('text/plain','task:${t.id}')" onclick="showTaskDetails(${t.id})" title="Tarefa — toque para ver/editar, arraste para outro dia">${t.status==='Concluída'?'✅':'☑️'} ${t.time||''} <b>${esc(t.company)}</b> — ${esc(t.title)} <span onclick="event.stopPropagation();openDestaqueMenu('tasks',${t.id})" title="Destacar card" style="float:right;opacity:.7">${t.destaque?HIGHLIGHT_COLORS[t.destaque].dot:'🏳️'}</span></div>`).join('');
+  const tkHtml=tk.map(t=>`<div class="event" draggable="true" style="cursor:grab;background:${t.destaque?HIGHLIGHT_COLORS[t.destaque].bg:t.status==='Concluída'?'#e8f7ed':'#fff5df'};color:${t.destaque?HIGHLIGHT_COLORS[t.destaque].text:t.status==='Concluída'?'#17813a':'#a86b00'}" ondragstart="event.dataTransfer.setData('text/plain','task:${t.id}')" onclick="showTaskDetails(${t.id})" title="Tarefa — toque para ver/editar, arraste para outro dia">${t.status==='Concluída'?'✅':'☑️'} ${t.time||''} <b>${esc(t.company)}</b> — ${esc(t.title)} <span onclick="event.stopPropagation();openDestaqueMenu('tasks',${t.id})" title="Destacar card" style="float:right;opacity:.7">${t.destaque?HIGHLIGHT_COLORS[t.destaque].dot:'🏳️'}</span>${(t.autoFollowUp&&t.status!=='Concluída')?`<div style="margin-top:4px;display:flex;gap:3px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()">${followUpButtonsHtml(t)}</div>`:''}</div>`).join('');
   cellsHtml+=`<div class="day" data-date="${date}"${isToday?' style="border:2px solid #3b82f6;background:#eff6ff"':''} ondragover="event.preventDefault();this.classList.add('drop-target')" ondragleave="this.classList.remove('drop-target')" ondrop="dropAgendaItem(event,'${date}')"><b${isToday?' style="color:#1d4ed8"':''}>${dayNum}</b>${evHtml}${tkHtml}</div>`;
  }
  document.getElementById('agenda').innerHTML=`<div class="page-head"><div><h1>Agenda</h1><p>Reuniões (📅) e tarefas agendadas (☑️/✅), visitas e compromissos — arraste um card para outro dia pra remarcar.</p></div><button class="btn primary" onclick="openForm('event')">＋ Agendar reunião</button></div><div class="card panel"><div class="panel-head"><h3>${MESES[month]} ${year}</h3><div class="actions"><button class="btn small" onclick="changeAgendaMonth(-1)">‹</button><button class="btn small" onclick="goToAgendaToday()">Hoje</button><button class="btn small" onclick="changeAgendaMonth(1)">›</button></div></div><div class="calendar">${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(x=>`<div style="font-weight:700;font-size:11px;color:#777;padding:5px">${x}</div>`).join('')}${cellsHtml}</div></div>`;
@@ -2538,21 +2539,20 @@ function completeTask(id){
  const wasCompleting=t.status!=='Concluída';
  t.status=t.status==='Concluída'?'Pendente':'Concluída';
  if(t.status==='Concluída' && t.dealId){const d=data.deals.find(x=>x.id===t.dealId);if(d){const next=new Date();next.setDate(next.getDate()+2);d.next=next.toISOString().slice(0,10)}}
- let followUpMsg='';
- if(wasCompleting)followUpMsg=scheduleKeepInTouchTask(t);
  save();
- toast(t.status==='Concluída'?('Tarefa concluída'+followUpMsg):'Tarefa reaberta');
+ toast(t.status==='Concluída'?'Tarefa concluída':'Tarefa reaberta');
  if(wasCompleting)openTaskResultModal(id);
 }
-function scheduleKeepInTouchTask(t){
- if(!t||!t.company)return '';
- const hasPending=data.tasks.some(x=>x.company===t.company&&x.status!=='Concluída');
- if(hasPending)return ''; // já tem algo pendente pra essa empresa, não duplica
- const days=7;
- const next=new Date();
- next.setDate(next.getDate()+days);
- data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),title:'Manter contato',company:t.company,contact:t.contact||'',date:next.toISOString().slice(0,10),time:'09:00',type:t.type||'Ligação',status:'Pendente',autoFollowUp:true,followUpDays:days});
- return ' · próximo contato agendado para '+fmtDateBR(next)+' ('+days+' dias), pra não perder o fio';
+function followUpButtonsHtml(t){
+ return [7,15,30].map(d=>`<button class="btn small ${(t.followUpDays||7)===d?'primary':''}" style="padding:2px 8px;font-size:11px" onclick="rescheduleAutoTask(${t.id},${d})">${d}d</button>`).join('')+`<button class="btn small danger" style="padding:2px 8px;font-size:11px" onclick="cancelAutoFollowUp(${t.id})">Não agendar</button>`;
+}
+function cancelAutoFollowUp(id){
+ const idx=data.tasks.findIndex(x=>x.id===id);
+ if(idx<0)return;
+ data.tasks.splice(idx,1);
+ save();
+ toast('Combinado — nenhuma tarefa futura agendada pra essa empresa agora');
+ if(document.getElementById('taskDetailModal').classList.contains('open'))closeTaskDetails();
 }
 function rescheduleAutoTask(id,days){
  const t=data.tasks.find(x=>x.id===id);
@@ -2563,8 +2563,10 @@ function rescheduleAutoTask(id,days){
  t.followUpDays=days;
  save();
  toast('Reagendado para '+fmtDateBR(next)+' ('+days+' dias)');
+ if(document.getElementById('taskDetailModal').classList.contains('open'))showTaskDetails(id);
 }
 let _pendingTaskResultId=null;
+let _pendingFollowUpChoice=7;
 function lastTaskResultForCompany(companyName,excludeId){
  if(!companyName)return null;
  const list=data.tasks.filter(t=>t.company===companyName&&t.resultado&&t.id!==excludeId).sort((a,b)=>(b.date+b.time)>(a.date+a.time)?1:-1);
@@ -2579,18 +2581,47 @@ function openTaskResultModal(id){
  const t=data.tasks.find(x=>x.id===id);
  if(!t)return;
  _pendingTaskResultId=id;
+ _pendingFollowUpChoice=7;
  document.getElementById('taskResultInput').value=t.resultado||'';
+ renderFollowUpChoice();
  document.getElementById('taskResultModal').classList.add('open');
 }
-function closeTaskResultModal(){document.getElementById('taskResultModal').classList.remove('open');_pendingTaskResultId=null}
+function renderFollowUpChoice(){
+ const box=document.getElementById('taskResultFollowUpChoice');
+ if(!box)return;
+ const opts=[[7,'7 dias'],[15,'15 dias'],[30,'30 dias'],['none','Não agendar']];
+ box.innerHTML=opts.map(([val,label])=>`<button class="btn small ${String(_pendingFollowUpChoice)===String(val)?'primary':''}" onclick="setFollowUpChoice('${val}')">${label}</button>`).join('');
+}
+function setFollowUpChoice(val){
+ _pendingFollowUpChoice=(val==='none')?'none':Number(val);
+ renderFollowUpChoice();
+}
+function finalizeFollowUpChoice(){
+ const t=data.tasks.find(x=>x.id===_pendingTaskResultId);
+ if(!t||_pendingFollowUpChoice==='none')return null;
+ const days=_pendingFollowUpChoice;
+ const next=new Date();
+ next.setDate(next.getDate()+days);
+ const newId=Date.now()+Math.floor(Math.random()*1000);
+ data.tasks.push({id:newId,title:'Manter contato',company:t.company,contact:t.contact||'',date:next.toISOString().slice(0,10),time:'09:00',type:t.type||'Ligação',status:'Pendente',autoFollowUp:true,followUpDays:days});
+ return newId;
+}
+function closeTaskResultModal(){
+ const newId=finalizeFollowUpChoice();
+ save();
+ document.getElementById('taskResultModal').classList.remove('open');
+ _pendingTaskResultId=null;
+ if(newId)showTaskDetails(newId);
+}
 function saveTaskResult(){
  const t=data.tasks.find(x=>x.id===_pendingTaskResultId);
- if(t){
-  t.resultado=document.getElementById('taskResultInput').value.trim();
-  save();
-  toast('Resultado registrado');
- }
- closeTaskResultModal();
+ if(t)t.resultado=document.getElementById('taskResultInput').value.trim();
+ const newId=finalizeFollowUpChoice();
+ save();
+ toast('Resultado registrado'+(newId?' · próxima tarefa criada':''));
+ document.getElementById('taskResultModal').classList.remove('open');
+ _pendingTaskResultId=null;
+ if(newId)showTaskDetails(newId);
 }
 function saveForm(type,collection,id){
  const defs={company:['name','cnpj','city','phone','address','email','segment','status','origin','leadScore','owner','notes'],contact:['name','company','role','cel','tel','email'],deal:['company','title','contact','value','stage','prob','priority','next','notes'],task:['title','company','contact','date','time','type','status','notes'],proposal:['company','item','value','date','status'],product:['name','category','price','active'],event:['title','company','date','time']};
