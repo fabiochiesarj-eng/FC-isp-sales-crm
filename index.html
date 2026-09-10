@@ -27,6 +27,9 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 
 .section{display:none}.section.active{display:block}
 .table-wrap{overflow:auto;cursor:grab}.table-wrap.panning{cursor:grabbing;user-select:none}.table{width:100%;border-collapse:collapse;background:#fff}.table th,.table td{padding:11px 10px;border-bottom:1px solid #edf0f4;text-align:left;font-size:13px;white-space:nowrap}.table th{background:#f8fafc;color:#667085;font-size:11px;text-transform:uppercase}.table tr:hover td{background:#fbfdff}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.toolbar input,.toolbar select,.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:8px;padding:10px 11px;outline:none;background:#fff;width:100%}.toolbar input{max-width:320px}.pipeline{display:grid;grid-template-columns:repeat(9,minmax(180px,1fr));gap:10px;overflow:auto;padding-bottom:10px;cursor:grab}.pipeline.panning{cursor:grabbing;user-select:none}.stage{background:#eef2f7;border-radius:10px;padding:10px;min-height:460px}.stage h4{margin:0 0 10px;font-size:13px;display:flex;justify-content:space-between}.deal{background:#fff;border:1px solid #e7ebf0;border-radius:9px;padding:11px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.04);cursor:grab}.deal b{font-size:13px}.deal small{display:block;color:var(--muted);margin:5px 0}.deal .money{font-weight:700;color:#1d4f91}.drop-target{outline:2px dashed #3b82f6}
+.taskcard{background:#fff;border:1px solid #edf0f4;border-radius:12px;box-shadow:var(--shadow);padding:13px 14px;margin-bottom:9px;position:relative}.taskcard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.taskcard .when{font-size:11.5px;color:#8a94a3;font-weight:700;min-width:64px}.taskcard .main b{font-size:14px;display:block}.taskcard .main small{color:var(--muted);display:block;margin-top:2px}.taskcard .bottom-row{display:flex;align-items:center;justify-content:space-between;margin-top:11px;gap:8px;flex-wrap:wrap}.taskcard .chan-icons{display:flex;gap:6px}
+.icon-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px}.icon-btn.danger{color:var(--red);border-color:#fecaca}
+.taskmenu-wrap{position:relative;display:inline-block}.taskmenu{position:absolute;right:0;top:36px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.15);min-width:170px;z-index:20;overflow:hidden}.taskmenu button{display:block;width:100%;text-align:left;padding:10px 14px;border:0;background:#fff;font-size:13px;cursor:pointer;color:#263342}.taskmenu button:hover{background:#f5f7fb}.taskmenu button.danger{color:var(--red)}
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.day{background:#fff;border:1px solid var(--line);min-height:110px;padding:8px;border-radius:8px}.day b{font-size:12px}.event{background:#edf5ff;color:#1f5b9d;padding:5px;border-radius:5px;margin-top:7px;font-size:11px}
 .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}.field.full{grid-column:1/-1}.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}.modal.open{display:flex}.modal-box{width:min(720px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:15px;box-shadow:0 25px 80px rgba(0,0,0,.25)}.modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.modal-body{padding:20px}.modal-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
 .toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:12px 16px;border-radius:9px;box-shadow:0 10px 30px #0003;display:none;z-index:200}.toast.show{display:block}
@@ -171,7 +174,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v16.00 · 2026-08-30 · Corrigido o bug real do "não abre a nova tarefa": antes, o sistema decidia sozinho pular a criação quando a empresa já tinha algo pendente (silenciosamente, sem avisar) — por isso quase nunca abria. Agora, ao concluir qualquer tarefa (Tarefas ou Agenda), a própria caixa "O que aconteceu?" já vem com o quadro "Quando será o próximo contato? [7 dias] [15 dias] [30 dias] [Não agendar]" — você sempre escolhe, e a ficha da nova tarefa abre sozinha assim que você decide (Salvar ou Pular)';
+const APP_BUILD='v16.04 · 2026-09-10 · Módulo Tarefas redesenhado (layout em cards, opção aprovada): trocada a tabela de 8 colunas por cards — cada tarefa mostra empresa, título, contato e telefone de forma legível, com WhatsApp/Ligar sempre visíveis, o botão "✔ Concluir" sempre em destaque, e um menu "⋯" agrupando Nova tarefa/Editar/Excluir. Corrigido: o botão Excluir agora aparece em toda tarefa (antes só existia nas já Concluídas). Busca por texto continua funcionando igual, agora sobre os cards';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -1230,27 +1233,112 @@ function setDashboardPeriod(start,end){
  renderDashboard();
 }
 function resetDashboardPeriod(){_dashboardPeriod=defaultDashboardPeriod();renderDashboard()}
+function avgTicket(){
+ const closed=data.deals.filter(d=>d.stage==='Fechado');
+ return closed.length?closed.reduce((a,d)=>a+Number(d.value||0),0)/closed.length:0;
+}
+function dealCycleAvgDays(){
+ // só dá para calcular o ciclo em oportunidades criadas depois da migração para ids
+ // com timestamp real (Date.now()); as de exemplo/antigas usam id sequencial pequeno
+ const closed=data.deals.filter(d=>d.stage==='Fechado'&&d.closedAt&&d.id>1e12);
+ if(!closed.length)return null;
+ const days=closed.map(d=>Math.max(0,Math.round((new Date(d.closedAt+'T00:00:00')-new Date(d.id))/86400000)));
+ return Math.round(days.reduce((a,b)=>a+b,0)/days.length);
+}
+function overallConversionRate(){
+ if(!data.deals.length)return 0;
+ return data.deals.filter(d=>d.stage==='Fechado').length/data.deals.length*100;
+}
+function funnelData(){
+ return stages.map((s,i)=>({stage:s,count:data.deals.filter(d=>d.stage!=='Perdido'&&stages.indexOf(d.stage)>=i).length}));
+}
+const MESES_ABREV=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+function monthlyClosedTrend(months){
+ const out=[],now=new Date();
+ for(let i=months-1;i>=0;i--){
+  const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+  const key=d.toISOString().slice(0,7);
+  const total=data.deals.filter(x=>x.stage==='Fechado'&&x.closedAt&&x.closedAt.slice(0,7)===key).reduce((a,x)=>a+Number(x.value||0),0);
+  out.push({label:MESES_ABREV[d.getMonth()],total,isCurrent:i===0});
+ }
+ return out;
+}
+function channelActivityWeek(){
+ const iso=x=>x.toISOString().slice(0,10);
+ const d0=new Date();d0.setHours(0,0,0,0);
+ const curStart=new Date(d0);curStart.setDate(d0.getDate()-6);
+ const prevEnd=new Date(curStart);prevEnd.setDate(curStart.getDate()-1);
+ const prevStart=new Date(prevEnd);prevStart.setDate(prevEnd.getDate()-6);
+ const hist=data.contactHistory||[];
+ const count=(ch,start,end)=>hist.filter(h=>h.channel===ch&&h.date>=iso(start)&&h.date<=end).length;
+ return [['telefone','☎ Ligações'],['whatsapp','💬 WhatsApp'],['outro','📇 Registro manual']].map(([ch,label])=>{
+  const cur=count(ch,curStart,iso(d0)),prev=count(ch,prevStart,iso(prevEnd));
+  const delta=prev?Math.round((cur-prev)/prev*100):(cur?100:0);
+  return{label,cur,prev,delta};
+ });
+}
+function dealOwnerRanking(list){
+ const map={};
+ list.forEach(d=>{
+  const owner=companyByName(d.company)?.owner||'Sem responsável';
+  map[owner]=map[owner]||{count:0,value:0};
+  map[owner].count++;map[owner].value+=Number(d.value||0);
+ });
+ return Object.entries(map).map(([owner,v])=>({owner,...v})).sort((a,b)=>b.value-a.value);
+}
 function renderDashboard(){
  if(!_dashboardPeriod)_dashboardPeriod=defaultDashboardPeriod();
  const period=_dashboardPeriod;
- const pipeline=data.deals.filter(d=>d.stage!=='Fechado'&&d.stage!=='Perdido').reduce((a,d)=>a+d.value,0);
+ const pipeline=data.deals.filter(d=>d.stage!=='Fechado'&&d.stage!=='Perdido');
+ const pipelineValue=pipeline.reduce((a,d)=>a+d.value,0);
  const closedDealsInPeriod=data.deals.filter(d=>d.stage==='Fechado'&&d.closedAt&&d.closedAt>=period.start&&d.closedAt<=period.end);
  const closed=closedDealsInPeriod.reduce((a,d)=>a+d.value,0);
- const monthTasks=data.tasks.filter(t=>t.date===today()&&t.status!=='Concluída');
+ const periodLenDays=Math.round((new Date(period.end)-new Date(period.start))/86400000)+1;
+ const prevPeriodEnd=new Date(period.start+'T00:00:00');prevPeriodEnd.setDate(prevPeriodEnd.getDate()-1);
+ const prevPeriodStart=new Date(prevPeriodEnd);prevPeriodStart.setDate(prevPeriodStart.getDate()-(periodLenDays-1));
+ const prevClosed=data.deals.filter(d=>d.stage==='Fechado'&&d.closedAt&&d.closedAt>=prevPeriodStart.toISOString().slice(0,10)&&d.closedAt<=prevPeriodEnd.toISOString().slice(0,10)).reduce((a,d)=>a+d.value,0);
+ const closedDelta=prevClosed?Math.round((closed-prevClosed)/prevClosed*100):(closed?100:0);
+ const callsToday=data.tasks.filter(t=>t.type==='Ligação'&&t.date===today());
+ const callsDone=callsToday.filter(t=>t.status==='Concluída').length;
  const delayed=data.tasks.filter(t=>t.date<today()&&t.status!=='Concluída').length;
  const target=data.settings.monthlyTarget;
  const stageVals=stages.map(s=>({s,v:data.deals.filter(d=>d.stage===s).reduce((a,d)=>a+d.value,0),n:data.deals.filter(d=>d.stage===s).length}));
  const max=Math.max(...stageVals.map(x=>x.v),1);
  const top=[...data.deals].sort((a,b)=>b.value-a.value).slice(0,5);
+ const ticket=avgTicket(),cycle=dealCycleAvgDays(),conv=overallConversionRate();
+ const activeRecent=data.companies.filter(c=>companyFollowupInfo(c).cls==='green').length;
+ const funnel=funnelData(),funnelMax=funnel[0]?.count||1;
+ const trend=monthlyClosedTrend(6),trendMax=Math.max(...trend.map(x=>x.total),1);
+ const channels=channelActivityWeek();
+ const ranking=dealOwnerRanking(closedDealsInPeriod.length?closedDealsInPeriod:data.deals.filter(d=>d.stage==='Fechado'));
  document.getElementById('dashboard').innerHTML=`
  <div class="page-head"><div><h1>Dashboard <span class="page-purpose">📍 seu dia a dia agora</span></h1><p>Visão geral da sua operação comercial</p></div><div class="actions"><input type="date" id="dashPeriodStart" value="${period.start}" style="border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:#334155"> <span style="color:#8a94a3">até</span> <input type="date" id="dashPeriodEnd" value="${period.end}" style="border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:#334155"> <button class="btn small" onclick="setDashboardPeriod(document.getElementById('dashPeriodStart').value,document.getElementById('dashPeriodEnd').value)">Aplicar</button> <button class="btn small" onclick="resetDashboardPeriod()" title="Voltar para o mês atual">↺ Mês atual</button><button class="btn primary" onclick="openForm('deal')">＋ Nova oportunidade</button></div></div>
  <div class="grid kpis">
- <div style="grid-column:1/-1;margin:-4px 0 6px;color:#8a94a3;font-size:12.5px">📅 Receita Fechada abaixo considera negócios fechados entre <b>${fmtDateBR(new Date(period.start+'T00:00:00'))}</b> e <b>${fmtDateBR(new Date(period.end+'T00:00:00'))}</b>. Os demais indicadores mostram a situação atual (não mudam com o período).</div>
-  ${kpi('💲','PIPELINE TOTAL',money(pipeline),'↑ 18% vs mês anterior','c-blue',undefined,"openDashboardDetails('pipeline')")}
+ <div style="grid-column:1/-1;margin:-4px 0 6px;color:#8a94a3;font-size:12.5px">📅 Receita Fechada abaixo considera negócios fechados entre <b>${fmtDateBR(new Date(period.start+'T00:00:00'))}</b> e <b>${fmtDateBR(new Date(period.end+'T00:00:00'))}</b>, comparada ao período anterior de mesma duração. Os demais indicadores mostram a situação atual (não mudam com o período).</div>
+  ${kpi('💲','PIPELINE TOTAL',money(pipelineValue),pipeline.length+' oportunidade(s) em aberto','c-blue',undefined,"openDashboardDetails('pipeline')")}
   ${kpi('🎯','META DO MÊS',money(target),Math.round(closed/target*100)+'% da meta atingida','c-green',Math.min(100,closed/target*100),"openDashboardDetails('meta')")}
-  ${kpi('💰','RECEITA FECHADA',money(closed),'↑ 12% vs mês anterior','c-purple',undefined,"openDashboardDetails('closed')")}
-  ${kpi('☎','LIGAÇÕES PARA HOJE',monthTasks.length+7,`${Math.max(0,7)} realizadas / ${monthTasks.length} pendentes`,'c-orange',undefined,"openDashboardDetails('calls')")}
-  ${kpi('◷','FOLLOW-UPS ATRASADOS',delayed+8,'Requerem sua atenção','c-red',undefined,"openDashboardDetails('overdue')")}
+  ${kpi('💰','RECEITA FECHADA',money(closed),(closedDelta>=0?'↑ ':'↓ ')+Math.abs(closedDelta)+'% vs período anterior','c-purple',undefined,"openDashboardDetails('closed')")}
+  ${kpi('☎','LIGAÇÕES PARA HOJE',callsDone+' / '+callsToday.length,callsDone+' realizadas · '+(callsToday.length-callsDone)+' pendentes','c-orange',undefined,"openDashboardDetails('calls')")}
+  ${kpi('◷','FOLLOW-UPS ATRASADOS',delayed,'Requerem sua atenção','c-red',undefined,"openDashboardDetails('overdue')")}
+ </div>
+ <div class="grid stat-grid" style="margin-bottom:14px">
+  <div class="card panel" style="padding:14px"><div style="font-size:11.5px;color:#667085;text-transform:uppercase">Ticket médio</div><div style="font-size:20px;font-weight:750;margin-top:6px">${money(ticket)}</div><div style="font-size:12px;color:var(--muted);margin-top:4px">por oportunidade fechada</div></div>
+  <div class="card panel" style="padding:14px"><div style="font-size:11.5px;color:#667085;text-transform:uppercase">Ciclo médio de venda</div><div style="font-size:20px;font-weight:750;margin-top:6px">${cycle===null?'—':cycle+' dias'}</div><div style="font-size:12px;color:var(--muted);margin-top:4px">${cycle===null?'ainda sem dados suficientes':'do 1º registro ao fechamento'}</div></div>
+  <div class="card panel" style="padding:14px"><div style="font-size:11.5px;color:#667085;text-transform:uppercase">Taxa de conversão geral</div><div style="font-size:20px;font-weight:750;margin-top:6px">${Math.round(conv)}%</div><div style="font-size:12px;color:var(--muted);margin-top:4px">lead → cliente fechado</div></div>
+  <div class="card panel" style="padding:14px;cursor:pointer" onclick="showPage('empresas')"><div style="font-size:11.5px;color:#667085;text-transform:uppercase">Empresas ativas na carteira</div><div style="font-size:20px;font-weight:750;margin-top:6px">${data.companies.length}</div><div style="font-size:12px;color:var(--muted);margin-top:4px">${activeRecent} com contato nos últimos 10 dias</div></div>
+ </div>
+ <div class="card panel" style="margin-bottom:14px"><div class="panel-head"><h3>Evolução de receita fechada — últimos 6 meses</h3></div>
+  <div style="display:flex;align-items:flex-end;gap:10px;height:150px;padding:10px 4px 0">
+   ${trend.map(m=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end"><div style="width:100%;max-width:34px;border-radius:4px 4px 0 0;background:${m.isCurrent?'#28a653':'#397edb'};height:${Math.max(4,m.total/trendMax*100)}%"></div><b style="font-size:11px">${money(m.total)}</b><small style="font-size:11px;color:var(--muted)">${esc(m.label)}${m.isCurrent?' (atual)':''}</small></div>`).join('')}
+  </div>
+ </div>
+ <div class="grid two" style="margin-bottom:14px">
+  <div class="card panel"><div class="panel-head"><h3>Funil de conversão</h3></div><div class="bars">
+   ${funnel.map((f,i)=>`<div class="row" style="grid-template-columns:135px 1fr 100px"><span>${i+1}. ${f.stage}</span><div class="bar"><i style="width:${Math.max(3,f.count/funnelMax*100)}%"></i></div><b>${f.count} <small style="color:#8a94a3">· ${Math.round(f.count/funnelMax*100)}%</small></b></div>`).join('')}
+  </div></div>
+  <div class="card panel"><div class="panel-head"><h3>Atividade por canal — 7 dias vs 7 dias anteriores</h3></div>
+   ${channels.map(c=>`<div class="row" style="grid-template-columns:135px 1fr 100px"><span>${c.label}</span><div class="bar"><i style="width:${Math.max(3,c.cur/Math.max(c.cur,c.prev,1)*100)}%"></i></div><b>${c.cur} <small style="color:${c.delta>0?'#16a34a':c.delta<0?'#dc2626':'#8a94a3'}">${c.delta>0?'↑':c.delta<0?'↓':'='}${c.delta!==0?Math.abs(c.delta)+'%':''}</small></b></div>`).join('')}
+  </div>
  </div>
  <div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>Empresas por origem de cadastro</h3><span class="link" onclick="showPage('empresas')">Ver todas</span></div><div style="padding:4px 0 10px;font-weight:700;font-size:22px">${data.companies.length} <small style="font-weight:400;font-size:13px;color:#667085">empresas cadastradas</small></div>${origins.map(o=>{const n=data.companies.filter(c=>(c.origin||'')===o).length;const pct=data.companies.length?Math.round(n/data.companies.length*100):0;return `<div class="list-row" style="cursor:pointer" onclick="showPage('empresas')"><span>${esc(o)}</span><div class="bar" style="width:45%"><i style="width:${Math.max(3,pct)}%"></i></div><b>${n} <small style="font-weight:400;color:#667085">(${pct}%)</small></b></div>`}).join('')}${(()=>{const semOrigem=data.companies.filter(c=>!c.origin).length;return semOrigem?`<div class="list-row"><span style="color:#8a94a3">Sem origem definida</span><div class="bar" style="width:45%"><i style="width:${Math.max(3,Math.round(semOrigem/data.companies.length*100))}%;background:#c7ccd4"></i></div><b>${semOrigem}</b></div>`:''})()}</div>
  <div class="grid three" style="margin-top:14px">
@@ -1259,6 +1347,9 @@ function renderDashboard(){
   <div class="card panel" style="cursor:pointer" onclick="showPage('propostas')"><div class="panel-head"><h3>Propostas pendentes</h3><span class="link" onclick="event.stopPropagation();showPage('propostas')">Ver todas</span></div>${data.proposals.slice(0,5).map(p=>{const due=proposalDueInfo(p);return `<div class="list-row"><div class="row-main"><b><a href="#" onclick="event.preventDefault();event.stopPropagation();showCompanyDetailsByName('${String(p.company).replace(/'/g,"’")}')" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(p.company)}</a></b><small>${esc(p.item)}</small></div><b>${money(p.value)}</b><small>${p.date}</small>${due?`<span class="tag ${due.cls}">${due.ic} ${due.label}</span>`:`<span class="tag ${p.status==='Aguardando'?'orange':''}">${p.status}</span>`}</div>`}).join('')}</div>
  </div>
  ${fase3Panel()}
+ <div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>Ranking por responsável ${ranking.length>1?'':'<span style="font-weight:400;color:#8a94a3;font-size:11.5px">(pronto para quando houver mais de um vendedor)</span>'}</h3></div>
+  ${ranking.length?ranking.map(r=>`<div class="list-row"><div class="row-main"><b>${esc(r.owner)}</b><small>${r.count} fechamento(s)${closedDealsInPeriod.length?' no período':' (total)'}</small></div><b>${money(r.value)}</b></div>`).join(''):'<p style="color:#8a94a3;padding:6px 0">Nenhum fechamento registrado ainda.</p>'}
+ </div>
  <div class="grid bottom" style="margin-top:14px">
   <div class="card panel insights"><div class="panel-head"><h3>Inteligência Comercial</h3><span class="link" onclick="showPage('inteligencia')">Ver todas</span></div>
    ${insight('🔴','Leads esquecidos (sem interação há mais de 15 dias)',data.companies.filter(c=>companyFollowupInfo(c).stale).length,'red')}${insight('!','Clientes sem contato há mais de 30 dias',data.companies.filter(c=>c.status==='Cliente').filter(c=>!data.tasks.some(t=>t.company===c.name&&t.date>=today())).length,'red')}${insight('◷','Propostas próximas do vencimento (7 dias)',data.proposals.filter(p=>{const d=new Date(p.date),n=new Date();const x=(d-n)/86400000;return x>=0&&x<=7&&p.status!=='Aprovada'&&p.status!=='Recusada'}).length,'orange')}${insight('$','Oportunidades de maior valor',money(Math.max(...data.deals.map(d=>d.value),0)),'green')}${insight('▣','Empresas sem follow-up agendado',data.companies.filter(c=>!data.tasks.some(t=>t.company===c.name&&t.status!=='Concluída')).length,'blue')}
@@ -1647,7 +1738,7 @@ function filterGroupedSearch(pageId,q){
   const body=group.querySelector('.group-body');
   const icon=body?document.getElementById(body.id+'-icon'):null;
   let anyVisible=false;
-  group.querySelectorAll('tbody tr').forEach(r=>{
+  group.querySelectorAll('tbody tr, .search-item').forEach(r=>{
    const show=!q||r.innerText.toLowerCase().includes(q);
    r.style.display=show?'':'none';
    if(show)anyVisible=true;
@@ -1717,15 +1808,46 @@ function dailySuggestionsPanel(){
  const body=sug.length?`<div class="card table-wrap"><table class="table"><thead><tr><th>#</th><th>Empresa</th><th>Potencial</th><th>Score 🧠</th><th>Telefone</th><th>Última interação</th><th>Ações</th></tr></thead><tbody>${sug.map((c,i)=>suggestionRowHtml(c,i)).join('')}</tbody></table></div>`:`<div style="padding:14px 0;color:#8a94a3;font-size:13px">Você já contatou todas as empresas priorizadas hoje. 🎉</div>`;
  return `<div class="card panel" style="margin-top:16px;border:1px solid #edf0f4"><div class="panel-head"><h3>🎯 Sugestões de hoje — Inteligência Comercial</h3></div><p style="margin:0 0 10px;color:#667085;font-size:13px">As 10 empresas com maior <b>Score 🧠</b> que <b>não têm nenhuma tarefa pendente marcada</b> (nem atrasada, nem futura) — ou seja, empresas que caíram do radar e merecem um próximo passo. Quem já tem tarefa agendada aparece na aba Tarefas normal, não aqui.</p>${body}</div>`;
 }
-function taskRowHtml(t){
+let _openTaskMenuId=null;
+function toggleTaskMenu(id,ev){
+ if(ev)ev.stopPropagation();
+ _openTaskMenuId=(_openTaskMenuId===id)?null:id;
+ document.querySelectorAll('.taskmenu').forEach(m=>{m.style.display=(Number(m.dataset.taskId)===_openTaskMenuId)?'block':'none'});
+}
+document.addEventListener('click',()=>{if(_openTaskMenuId!==null){_openTaskMenuId=null;document.querySelectorAll('.taskmenu').forEach(m=>m.style.display='none')}});
+function taskCardHtml(t){
  const contact=resolveTaskContact(t);
  const contactName=contact?contact.name:(t.contact?String(t.contact).split(' — ')[0]:'');
  const cel=contact?.cel||'',tel=contact?.tel||'';
- const followUpPicker=(t.autoFollowUp&&t.status!=='Concluída')?`<div style="margin-top:4px;display:flex;gap:4px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()"><small style="color:#8a94a3">Reagendar:</small>${followUpButtonsHtml(t)}</div>`:'';
- return `<tr><td>${t.date}</td><td>${t.time}</td><td>${t.company?`<small style="display:block;color:#8a94a3;font-weight:600">${esc(t.company)}</small>`:''}<b><a href="#" onclick="event.preventDefault();showTaskDetails(${t.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(t.title)}</a></b>${followUpPicker}</td><td>${esc(t.company)}</td><td>${esc(contactName)}</td><td>${esc(cel||tel)}</td><td>${t.type}</td><td>${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)} <button class="btn small success" onclick="completeTask(${t.id})">${t.status==='Concluída'?'Reabrir':'Concluir'}</button> <button class="btn small" onclick="quickTask('${String(t.company).replace(/'/g,"’")}')">➕ Nova tarefa</button> <button class="btn small" onclick="editItem('task',${t.id})">Editar</button>${t.status==='Concluída'?` <button class="btn small danger" onclick="del('tasks',${t.id})">Excluir</button>`:''}</td></tr>`;
+ const now=today();
+ const overdueDays=(t.status!=='Concluída'&&t.date<now)?Math.round((new Date(now+'T00:00:00')-new Date(t.date+'T00:00:00'))/86400000):0;
+ const statusTag=t.status==='Concluída'?`<span class="tag green">✅ Concluída</span>`:overdueDays>0?`<span class="tag red">${overdueDays} dia(s) atrasada</span>`:`<span class="tag">${esc(t.type)}</span>`;
+ const followUp=(t.autoFollowUp&&t.status!=='Concluída')?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid #f0f2f5;display:flex;gap:6px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()"><small style="color:#8a94a3">Reagendar:</small>${followUpButtonsHtml(t)}</div>`:'';
+ return `<div class="taskcard search-item">
+  <div class="top">
+   <div class="when">${fmtDateBR(new Date(t.date+'T00:00:00')).slice(0,5)}<br>${esc(t.time||'')}</div>
+   <div class="main" style="flex:1;min-width:0;cursor:pointer" onclick="showTaskDetails(${t.id})">${t.company?`<small style="color:#8a94a3;font-weight:600">${esc(t.company)}</small>`:''}<b>${esc(t.title)}</b>${contactName?`<small>${esc(contactName)}${(cel||tel)?' · '+esc(cel||tel):''}</small>`:''}</div>
+   ${statusTag}
+  </div>
+  ${followUp}
+  <div class="bottom-row">
+   <div class="chan-icons">${whatsappBtn(cel,'',t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)}</div>
+   <div style="display:flex;gap:6px;align-items:center">
+    <button class="btn small success" onclick="completeTask(${t.id})">${t.status==='Concluída'?'↺ Reabrir':'✔ Concluir'}</button>
+    <div class="taskmenu-wrap">
+     <span class="icon-btn" onclick="toggleTaskMenu(${t.id},event)">⋯</span>
+     <div class="taskmenu" data-task-id="${t.id}" style="display:none" onclick="event.stopPropagation()">
+      <button onclick="quickTask('${String(t.company||'').replace(/'/g,"’")}')">➕ Nova tarefa</button>
+      <button onclick="editItem('task',${t.id})">✏️ Editar</button>
+      <button class="danger" onclick="del('tasks',${t.id})">🗑 Excluir</button>
+     </div>
+    </div>
+   </div>
+  </div>
+ </div>`;
 }
-function taskGroupTable(list,emptyMsg){
- return list.length?`<div class="card table-wrap"><table class="table" data-table-group="tarefas"><thead><tr><th data-col="0">Data</th><th data-col="1">Hora</th><th data-col="2">Tarefa</th><th data-col="3">Empresa</th><th data-col="4">Contato</th><th data-col="5">Tel</th><th data-col="6">Tipo</th><th data-col="7">Ações</th></tr></thead><tbody>${list.map(taskRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
+function taskGroupCards(list,emptyMsg){
+ return list.length?list.map(taskCardHtml).join(''):`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
 }
 function toggleDoneTasks(){toggleGroup('grp-tasks-done')}
 function filterTasksSearch(q){_pageFilters.tarefas.search=q;filterGroupedSearch('tarefas',q)}
@@ -1739,14 +1861,13 @@ function renderTasks(){
  const doneSorted=[...done].sort((a,b)=>(b.date+' '+b.time).localeCompare(a.date+' '+a.time));
  document.getElementById('tarefas').innerHTML=tablePage('Tarefas','Follow-ups, atividades e pendências comerciais',`<button class="btn danger" onclick="deleteCompletedTasks()" ${done.length?'':'disabled'}>🗑 Excluir concluídas${done.length?' ('+done.length+')':''}</button><button class="btn primary" onclick="openForm('task')">＋ Nova tarefa</button>`,
  `<div class="toolbar"><input id="tasksSearchInput" placeholder="Pesquisar por tarefa, empresa ou contato..." oninput="filterTasksSearch(this.value)"></div>
- ${groupSection('grp-tasks-overdue','🔴','#dc2626','Atrasadas',overdue.length,taskGroupTable(overdue,'Nenhuma tarefa atrasada — tudo em dia por aqui.'))}
- ${groupSection('grp-tasks-today','🟡','#a86b00','Hoje',todayT.length,taskGroupTable(todayT,'Nenhuma tarefa para hoje.'))}
- ${groupSection('grp-tasks-upcoming','🟢','#16a34a','Próximas',upcoming.length,taskGroupTable(upcoming,'Nenhuma tarefa futura agendada.'))}
- ${groupSection('grp-tasks-done','✅','#667085','Concluídas',done.length,taskGroupTable(doneSorted,'Nenhuma tarefa concluída ainda.'))}
+ ${groupSection('grp-tasks-overdue','🔴','#dc2626','Atrasadas',overdue.length,taskGroupCards(overdue,'Nenhuma tarefa atrasada — tudo em dia por aqui.'))}
+ ${groupSection('grp-tasks-today','🟡','#a86b00','Hoje',todayT.length,taskGroupCards(todayT,'Nenhuma tarefa para hoje.'))}
+ ${groupSection('grp-tasks-upcoming','🟢','#16a34a','Próximas',upcoming.length,taskGroupCards(upcoming,'Nenhuma tarefa futura agendada.'))}
+ ${groupSection('grp-tasks-done','✅','#667085','Concluídas',done.length,taskGroupCards(doneSorted,'Nenhuma tarefa concluída ainda.'))}
  ${dailySuggestionsPanel()}`);
  document.getElementById('tasksSearchInput').value=_pageFilters.tarefas.search||'';
  filterGroupedSearch('tarefas',_pageFilters.tarefas.search||'');
- setupReorderableTables('tarefas');
 }
 function showTaskDetails(id){
  const t=data.tasks.find(x=>x.id===id);
@@ -1766,7 +1887,12 @@ function showTaskDetails(id){
    ${field('Celular',cel)}
    ${field('Telefone fixo',tel)}
  </div>
- ${(t.autoFollowUp&&t.status!=='Concluída')?`<div class="field" style="margin-top:6px;background:#eff6ff;border-radius:8px;padding:10px"><label>🔄 Reagendar este contato</label><div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">${[7,15,30].map(d=>`<button class="btn small ${(t.followUpDays||7)===d?'primary':''}" onclick="rescheduleAutoTask(${t.id},${d})">${d} dias</button>`).join('')}<button class="btn small danger" onclick="cancelAutoFollowUp(${t.id})">Não agendar</button></div></div>`:''}
+ ${(()=>{
+  const lastResult=lastTaskResultForCompany(t.company,t.id);
+  if(!lastResult)return '';
+  return `<div class="field" style="margin-top:6px;background:#eff6ff;border-radius:8px;padding:10px 12px"><b style="font-size:12.5px;color:#1e40af">📋 Última interação com essa empresa (${fmtDateBR(new Date(lastResult.date+'T00:00:00'))}) — ${esc(lastResult.title)}</b><div style="font-size:13px;color:#334155;margin-top:4px;white-space:pre-wrap">${esc(lastResult.resultado)}</div></div>`;
+ })()}
+ ${(t.autoFollowUp&&t.status!=='Concluída')?`<div class="field" style="margin-top:6px;background:#eff6ff;border-radius:8px;padding:10px"><label>🔄 Reagendar este contato</label><div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center" onclick="event.stopPropagation()">${followUpButtonsHtml(t)}</div></div>`:''}
  ${t.notes?`<div class="field" style="margin-top:6px"><label>Anotações</label><div style="padding:8px 0;white-space:pre-wrap">${esc(t.notes)}</div></div>`:''}
  ${t.resultado?`<div class="field" style="margin-top:6px;background:#f0fdf4;border-radius:8px;padding:0 10px"><label>✅ O que aconteceu</label><div style="padding:8px 0;white-space:pre-wrap">${esc(t.resultado)}</div></div>`:''}
  <div style="display:flex;gap:6px;margin-top:6px">${whatsappBtn(cel,null,t.company,contactName)} ${callBtn(cel,'📞','Ligar celular',t.company,contactName)} ${callBtn(tel,'☎️','Ligar fixo',t.company,contactName)}</div>`;
@@ -2544,8 +2670,12 @@ function completeTask(id){
  if(wasCompleting)openTaskResultModal(id);
 }
 function followUpButtonsHtml(t){
- return [7,15,30].map(d=>`<button class="btn small ${(t.followUpDays||7)===d?'primary':''}" style="padding:2px 8px;font-size:11px" onclick="rescheduleAutoTask(${t.id},${d})">${d}d</button>`).join('')+`<button class="btn small danger" style="padding:2px 8px;font-size:11px" onclick="cancelAutoFollowUp(${t.id})">Não agendar</button>`;
+ const nextDate=t.followUpDate||t.date||addDaysISO(today(),7);
+ return `<input type="date" min="${today()}" value="${nextDate}" id="fu_date_${t.id}" style="border:1px solid var(--line);border-radius:5px;padding:2px 4px;font-size:11px" onclick="event.stopPropagation()">`
+ +`<button class="btn small" style="padding:2px 8px;font-size:11px" onclick="event.stopPropagation();rescheduleAutoTask(${t.id},document.getElementById('fu_date_${t.id}').value)">↻ Reagendar</button>`
+ +`<button class="btn small danger" style="padding:2px 8px;font-size:11px" onclick="event.stopPropagation();cancelAutoFollowUp(${t.id})">Não agendar</button>`;
 }
+function addDaysISO(iso,n){const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
 function cancelAutoFollowUp(id){
  const idx=data.tasks.findIndex(x=>x.id===id);
  if(idx<0)return;
@@ -2554,19 +2684,19 @@ function cancelAutoFollowUp(id){
  toast('Combinado — nenhuma tarefa futura agendada pra essa empresa agora');
  if(document.getElementById('taskDetailModal').classList.contains('open'))closeTaskDetails();
 }
-function rescheduleAutoTask(id,days){
+function rescheduleAutoTask(id,dateStr){
  const t=data.tasks.find(x=>x.id===id);
  if(!t)return;
- const next=new Date();
- next.setDate(next.getDate()+days);
- t.date=next.toISOString().slice(0,10);
- t.followUpDays=days;
+ if(!dateStr||isNaN(new Date(dateStr+'T00:00:00').getTime())){toast('Escolha uma data válida');return}
+ t.date=dateStr;
+ t.followUpDate=dateStr;
+ delete t.followUpDays;
  save();
- toast('Reagendado para '+fmtDateBR(next)+' ('+days+' dias)');
+ toast('Reagendado para '+fmtDateBR(new Date(dateStr+'T00:00:00')));
  if(document.getElementById('taskDetailModal').classList.contains('open'))showTaskDetails(id);
 }
 let _pendingTaskResultId=null;
-let _pendingFollowUpChoice=7;
+let _pendingFollowUpChoice=null;
 function lastTaskResultForCompany(companyName,excludeId){
  if(!companyName)return null;
  const list=data.tasks.filter(t=>t.company===companyName&&t.resultado&&t.id!==excludeId).sort((a,b)=>(b.date+b.time)>(a.date+a.time)?1:-1);
@@ -2581,7 +2711,7 @@ function openTaskResultModal(id){
  const t=data.tasks.find(x=>x.id===id);
  if(!t)return;
  _pendingTaskResultId=id;
- _pendingFollowUpChoice=7;
+ _pendingFollowUpChoice=addDaysISO(today(),7);
  document.getElementById('taskResultInput').value=t.resultado||'';
  renderFollowUpChoice();
  document.getElementById('taskResultModal').classList.add('open');
@@ -2589,21 +2719,26 @@ function openTaskResultModal(id){
 function renderFollowUpChoice(){
  const box=document.getElementById('taskResultFollowUpChoice');
  if(!box)return;
- const opts=[[7,'7 dias'],[15,'15 dias'],[30,'30 dias'],['none','Não agendar']];
- box.innerHTML=opts.map(([val,label])=>`<button class="btn small ${String(_pendingFollowUpChoice)===String(val)?'primary':''}" onclick="setFollowUpChoice('${val}')">${label}</button>`).join('');
+ const isNone=_pendingFollowUpChoice==='none';
+ const dateVal=isNone?addDaysISO(today(),7):_pendingFollowUpChoice;
+ box.innerHTML=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+   <label style="display:flex;align-items:center;gap:6px;font-size:13px">Próximo contato em <input type="date" min="${today()}" value="${dateVal}" id="followUpDateInput" ${isNone?'disabled':''} onchange="setFollowUpDate(this.value)" style="border:1px solid var(--line);border-radius:6px;padding:4px 6px"></label>
+   <button class="btn small danger ${isNone?'primary':''}" onclick="toggleFollowUpNone()">${isNone?'✕ Não vou agendar':'Não agendar'}</button>
+ </div>`;
 }
-function setFollowUpChoice(val){
- _pendingFollowUpChoice=(val==='none')?'none':Number(val);
+function setFollowUpDate(v){
+ _pendingFollowUpChoice=(v&&!isNaN(new Date(v+'T00:00:00').getTime()))?v:addDaysISO(today(),7);
+}
+function toggleFollowUpNone(){
+ _pendingFollowUpChoice=(_pendingFollowUpChoice==='none')?addDaysISO(today(),7):'none';
  renderFollowUpChoice();
 }
 function finalizeFollowUpChoice(){
  const t=data.tasks.find(x=>x.id===_pendingTaskResultId);
  if(!t||_pendingFollowUpChoice==='none')return null;
- const days=_pendingFollowUpChoice;
- const next=new Date();
- next.setDate(next.getDate()+days);
+ const dateStr=_pendingFollowUpChoice;
  const newId=Date.now()+Math.floor(Math.random()*1000);
- data.tasks.push({id:newId,title:'Manter contato',company:t.company,contact:t.contact||'',date:next.toISOString().slice(0,10),time:'09:00',type:t.type||'Ligação',status:'Pendente',autoFollowUp:true,followUpDays:days});
+ data.tasks.push({id:newId,title:'Manter contato',company:t.company,contact:t.contact||'',date:dateStr,time:'09:00',type:t.type||'Ligação',status:'Pendente',autoFollowUp:true,followUpDate:dateStr});
  return newId;
 }
 function closeTaskResultModal(){
