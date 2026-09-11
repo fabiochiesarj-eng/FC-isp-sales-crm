@@ -174,7 +174,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v16.04 · 2026-09-10 · Módulo Tarefas redesenhado (layout em cards, opção aprovada): trocada a tabela de 8 colunas por cards — cada tarefa mostra empresa, título, contato e telefone de forma legível, com WhatsApp/Ligar sempre visíveis, o botão "✔ Concluir" sempre em destaque, e um menu "⋯" agrupando Nova tarefa/Editar/Excluir. Corrigido: o botão Excluir agora aparece em toda tarefa (antes só existia nas já Concluídas). Busca por texto continua funcionando igual, agora sobre os cards';
+const APP_BUILD='v16.05 · 2026-09-10 · Adicionado 🗑 Excluir nas Tarefas pendentes dentro do card 360° da Empresa (antes só tinha ✔ Concluir e ✎ Editar) — pede confirmação antes de excluir e o card atualiza sozinho na hora, sem precisar fechar e reabrir a ficha da empresa';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -2861,7 +2861,7 @@ function companyTasksPanel(companyName,companyId){
  const tasks=data.tasks.filter(t=>t.company===companyName && t.status!=='Concluída').sort((a,b)=>(a.date+' '+a.time).localeCompare(b.date+' '+b.time));
  const rows=tasks.length?tasks.map(t=>`<div class="list-row" style="align-items:center;flex-wrap:wrap;gap:8px">
     <div class="row-main" style="min-width:0"><b>${esc(t.title)}</b><small>${t.date} ${t.time} • ${esc(t.type)}${t.date<today()?' • <span style="color:#dc2626">atrasada</span>':''}</small></div>
-    <div style="display:flex;gap:4px;flex-shrink:0"><button class="btn small success" onclick="event.preventDefault();completeTask(${t.id});showCompanyDetails(${companyId})" title="Concluir">✔</button><button class="btn small" onclick="event.preventDefault();closeCompanyDetails();editItem('task',${t.id})" title="Editar">✎</button></div>
+    <div style="display:flex;gap:4px;flex-shrink:0"><button class="btn small success" onclick="event.preventDefault();completeTask(${t.id});showCompanyDetails(${companyId})" title="Concluir">✔</button><button class="btn small" onclick="event.preventDefault();closeCompanyDetails();editItem('task',${t.id})" title="Editar">✎</button><button class="btn small danger" onclick="event.preventDefault();showConfirm('Excluir esta tarefa?',()=>{data.tasks=data.tasks.filter(x=>x.id!==${t.id});save();toast('Tarefa excluída');showCompanyDetails(${companyId})},'Excluir')" title="Excluir">🗑</button></div>
    </div>`).join(''):'<div style="padding:10px;color:#8a94a3;font-size:13px">Nenhuma tarefa pendente.</div>';
  return `<div class="card panel" style="margin-top:16px">
    <div class="panel-head"><h3>Tarefas pendentes</h3><a href="#" onclick="event.preventDefault();closeCompanyDetails();quickTask('${String(companyName).replace(/'/g,"’")}')" style="font-size:12px;font-weight:600;color:#3b82f6">＋ Nova tarefa</a></div>
