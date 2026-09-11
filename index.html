@@ -175,7 +175,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v16.06 · 2026-09-10 · Corrigida a sensação de "a tarefa some depois de criada" — sem mudar nenhuma regra já existente, só o comportamento depois de salvar: 1) o aviso de salvamento de tarefa agora vem com um botão "Ver tarefa" que leva direto até ela, de onde você estiver; 2) ao criar/editar uma tarefa, o grupo (Atrasadas/Hoje/Próximas/Concluídas) que contém ela abre sozinho na tela de Tarefas e o card pisca em azul por um instante pra você achar na hora; 3) criar uma tarefa a partir da ficha da Empresa (botão "📅 Tarefa" ou "＋ Nova tarefa" dentro de Tarefas pendentes) agora volta pra mesma ficha da empresa depois de salvar, já mostrando a tarefa nova na lista, em vez de te deixar solto em outra tela';
+const APP_BUILD='v16.09 · 2026-09-10 · Campo "Tarefa" do formulário virou seleção múltipla: agora dá pra escolher mais de uma opção pré-escrita ao mesmo tempo (incluindo a nova "🔎 Ver demandas"), e o texto livre digitado também vira um totem — todos aparecem como totens com borda azul, removíveis com ✕, e são salvos juntos no título da tarefa (ex: "Ligação + Ver demandas + Falar sobre upgrade")';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -1465,17 +1465,49 @@ function insight(ic,text,val,cl){return `<div class="insight"><div class="circle
 function taskRow(t){return `<div class="list-row" style="cursor:pointer" onclick="showTaskDetails(${t.id})"><span class="time">${t.time}</span><div class="row-main"><b>${esc(t.company)}</b><small>${esc(t.title)}</small></div><div class="row-icon">${t.type==='Ligação'?'☎':t.type==='E-mail'?'✉':t.type==='WhatsApp'?'💬':'📌'}</div></div>`}
 function mapHTML(){return `<div class="map"><div class="water"></div><span class="map-label" style="left:17%;top:17%">Nova Iguaçu</span><span class="map-label" style="left:66%;top:18%">Itaboraí</span><span class="map-label" style="left:50%;top:72%">Rio de Janeiro</span><span class="map-label" style="right:13%;top:63%">Niterói</span>${[['p-green',12,65],['p-green',28,25],['p-blue',50,40],['p-orange',70,28],['p-red',80,13],['p-green',88,68],['p-red',30,75],['p-orange',40,20],['p-red',66,80],['p-green',18,80]].map(x=>`<i class="pin ${x[0]}" style="left:${x[1]}%;top:${x[2]}%"></i>`).join('')}</div>`}
 function tablePage(title,desc,toolbar,table){return `<div class="page-head"><div><h1>${title}</h1><p>${desc}</p></div><div class="actions">${toolbar}</div></div>${table}`}
-function companyRowHtml(c){
- const f=companyFollowupInfo(c);
- return `<tr data-origin="${esc(c.origin||'')}" data-region="${esc(regionOfCity(c.city))}"><td><b><a href="#" onclick="event.preventDefault();showCompanyDetails(${c.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(c.name)}</a></b></td><td>${esc(c.city)}</td><td>${esc(c.phone)}</td><td>${esc(c.segment)}</td><td><span class="tag">${esc(c.status)}</span></td><td><span class="tag">${esc(c.origin||'—')}</span></td><td>${followupBadge(c)}</td><td>${leadScoreBadge(c.leadScore)}</td><td>${esc(c.owner)}</td><td>${actionIcons(c.phone,c.name)} <button class="btn small" title="Agendar tarefa de contato futuro" onclick="quickTask('${String(c.name).replace(/'/g,"’")}')">📅 Tarefa</button> <button class="btn small" title="Registrar envio de proposta" onclick="quickProposal('${String(c.name).replace(/'/g,"’")}')">📄 Proposta</button> <button class="btn small" title="Criar oportunidade" onclick="quickDeal('${String(c.name).replace(/'/g,"’")}')">💼 Oportunidade</button> <button class="btn small" onclick="editItem('company',${c.id})">Editar</button> <button class="btn small danger" onclick="del('companies',${c.id})">Excluir</button></td></tr>`;
+let _openCompanyMenuId=null;
+function toggleCompanyMenu(id,ev){
+ if(ev)ev.stopPropagation();
+ _openCompanyMenuId=(_openCompanyMenuId===id)?null:id;
+ document.querySelectorAll('.company-menu').forEach(m=>{m.style.display=(Number(m.dataset.companyId)===_openCompanyMenuId)?'block':'none'});
 }
-function companyGroupTable(list,emptyMsg){
- return list.length?`<div class="card table-wrap"><table class="table companies-group-table" data-table-group="empresas"><thead><tr><th data-col="0">Empresa</th><th data-col="1">Cidade</th><th data-col="2">Telefone</th><th data-col="3">Segmento</th><th data-col="4">Status</th><th data-col="5">Origem</th><th data-col="6">Última interação</th><th data-col="7">Lead Score</th><th data-col="8">Responsável</th><th data-col="9">Ações</th></tr></thead><tbody>${list.map(companyRowHtml).join('')}</tbody></table></div>`:`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
+document.addEventListener('click',()=>{if(_openCompanyMenuId!==null){_openCompanyMenuId=null;document.querySelectorAll('.company-menu').forEach(m=>m.style.display='none')}});
+function companyCardHtml(c){
+ const nameEsc=String(c.name).replace(/'/g,"’");
+ return `<div class="taskcard search-item" data-company-id="${c.id}" data-origin="${esc(c.origin||'')}" data-region="${esc(regionOfCity(c.city))}">
+  <div class="top">
+   <div class="main" style="flex:1;min-width:0;cursor:pointer" onclick="showCompanyDetails(${c.id})"><b>${esc(c.name)}</b><small>${esc(c.city)}${c.city&&c.phone?' · ':''}${esc(c.phone)}${c.owner?' · 👤 '+esc(c.owner):''}</small></div>
+   <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${followupBadge(c)}${leadScoreBadge(c.leadScore)}</div>
+  </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+   <span class="tag">${esc(c.segment)}</span><span class="tag">${esc(c.status)}</span><span class="tag">${esc(c.origin||'—')}</span>
+  </div>
+  <div class="bottom-row">
+   <div class="chan-icons">${actionIcons(c.phone,c.name)}</div>
+   <div class="taskmenu-wrap">
+    <span class="icon-btn" onclick="toggleCompanyMenu(${c.id},event)">⋯</span>
+    <div class="taskmenu company-menu" data-company-id="${c.id}" style="display:none" onclick="event.stopPropagation()">
+     <button onclick="quickTask('${nameEsc}')">📅 Nova tarefa</button>
+     <button onclick="quickProposal('${nameEsc}')">📄 Nova proposta</button>
+     <button onclick="quickDeal('${nameEsc}')">💼 Nova oportunidade</button>
+     <button onclick="editItem('company',${c.id})">✏️ Editar</button>
+     <button class="danger" onclick="del('companies',${c.id})">🗑 Excluir</button>
+    </div>
+   </div>
+  </div>
+ </div>`;
+}
+function companyGroupCards(list,emptyMsg){
+ return list.length?list.map(companyCardHtml).join(''):`<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">${emptyMsg}</p>`;
 }
 let _companyFilters={search:'',origin:'',region:''};
 let _pageFilters={contatos:{search:''},oportunidades:{search:''},tarefas:{search:''},propostas:{search:'',status:''}};
 let _taskFocusId=null;
 let _taskReturnCompanyId=null;
+let _dealFocusId=null;
+let _dealReturnCompanyId=null;
+let _proposalFocusId=null;
+let _proposalReturnCompanyId=null;
 function applyCompanyFilters(){
  const q=(_companyFilters.search||'').toLowerCase().trim();
  const origin=_companyFilters.origin||'';
@@ -1485,7 +1517,7 @@ function applyCompanyFilters(){
   const body=group.querySelector('.group-body');
   const icon=body?document.getElementById(body.id+'-icon'):null;
   let anyVisible=false;
-  group.querySelectorAll('tbody tr').forEach(r=>{
+  group.querySelectorAll('.search-item').forEach(r=>{
    const show=(!q||r.innerText.toLowerCase().includes(q))&&(!origin||r.dataset.origin===origin)&&(!region||r.dataset.region===region);
    r.style.display=show?'':'none';
    if(show)anyVisible=true;
@@ -1510,15 +1542,14 @@ function renderCompanies(){
  const regionsPresent=[...new Set(sorted.map(c=>regionOfCity(c.city)))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
  document.getElementById('empresas').innerHTML=tablePage('Empresas','Cadastro e gestão dos seus clientes e prospects',`<button class="btn" onclick="exportCSV('companies')">⇩ Exportar</button><button class="btn primary" onclick="openForm('company')">＋ Nova empresa</button>`,
  `<div class="toolbar"><input id="companiesSearchInput" placeholder="Pesquisar empresa..." oninput="filterCompaniesSearch(this.value)"><select id="companiesOriginSelect" onchange="filterCompaniesOrigin(this.value)"><option value="">Todas as origens</option>${origins.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select><select id="companiesRegionSelect" onchange="filterCompaniesRegion(this.value)"><option value="">Todas as regiões</option>${regionsPresent.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}</select>${(_companyFilters.search||_companyFilters.origin||_companyFilters.region)?'<button class="btn small" onclick="clearCompanyFilters()">✕ Limpar filtros</button>':''}</div>
-  ${groupSection('grp-comp-red','🔴','#dc2626','Esquecidas (+15d sem contato)',groups.red.length,companyGroupTable(groups.red,'Nenhuma empresa esquecida — parabéns!'))}
-  ${groupSection('grp-comp-gray','⚪','#8a94a3','Nunca contatadas',groups.gray.length,companyGroupTable(groups.gray,'Nenhuma empresa sem contato registrado.'))}
-  ${groupSection('grp-comp-orange','🟡','#a86b00','Atenção (11-15d)',groups.orange.length,companyGroupTable(groups.orange,'Nenhuma empresa em atenção.'))}
-  ${groupSection('grp-comp-green','🟢','#16a34a','Em dia (até 10d)',groups.green.length,companyGroupTable(groups.green,'Nenhuma empresa em dia ainda.'))}`);
+  ${groupSection('grp-comp-red','🔴','#dc2626','Esquecidas (+15d sem contato)',groups.red.length,companyGroupCards(groups.red,'Nenhuma empresa esquecida — parabéns!'))}
+  ${groupSection('grp-comp-gray','⚪','#8a94a3','Nunca contatadas',groups.gray.length,companyGroupCards(groups.gray,'Nenhuma empresa sem contato registrado.'))}
+  ${groupSection('grp-comp-orange','🟡','#a86b00','Atenção (11-15d)',groups.orange.length,companyGroupCards(groups.orange,'Nenhuma empresa em atenção.'))}
+  ${groupSection('grp-comp-green','🟢','#16a34a','Em dia (até 10d)',groups.green.length,companyGroupCards(groups.green,'Nenhuma empresa em dia ainda.'))}`);
  document.getElementById('companiesSearchInput').value=_companyFilters.search||'';
  document.getElementById('companiesOriginSelect').value=_companyFilters.origin||'';
  document.getElementById('companiesRegionSelect').value=_companyFilters.region||'';
  applyCompanyFilters();
- setupReorderableTables('empresas');
 }
 function showCompanyDetails(id){
  const c=data.companies.find(x=>x.id===id);
@@ -1541,14 +1572,14 @@ function showCompanyDetails(id){
  <div class="field"><label>Última interação</label><div style="padding:8px 0">${followupBadge(c)}</div></div>
  <div class="field" style="margin-top:4px"><label>Observação</label><div style="padding:8px 0;white-space:pre-wrap">${c.notes?esc(c.notes):'<span style="color:#8a94a3">Nenhuma observação</span>'}</div></div>
  ${companyContactsPanel(c.name,c.id)}
- ${companyDealsPanel(c.name)}
+ ${companyDealsPanel(c.name,c.id)}
  ${companyTasksPanel(c.name,c.id)}
- ${companyProposalsPanel(c.name)}`;
+ ${companyProposalsPanel(c.name,c.id)}`;
  document.getElementById('companyDetailEditBtn').onclick=()=>{closeCompanyDetails();editItem('company',id)};
  document.getElementById('companyDetailDeleteBtn').onclick=()=>{closeCompanyDetails();del('companies',id)};
  document.getElementById('companyDetailTaskBtn').onclick=()=>{openTaskFromCompany(id,c.name)};
- document.getElementById('companyDetailProposalBtn').onclick=()=>{closeCompanyDetails();quickProposal(c.name)};
- document.getElementById('companyDetailDealBtn').onclick=()=>{closeCompanyDetails();quickDeal(c.name)};
+ document.getElementById('companyDetailProposalBtn').onclick=()=>{openProposalFromCompany(id,c.name)};
+ document.getElementById('companyDetailDealBtn').onclick=()=>{openDealFromCompany(id,c.name)};
  document.getElementById('companyDetailModal').classList.add('open');
 }
 function closeCompanyDetails(){document.getElementById('companyDetailModal').classList.remove('open')}
@@ -1720,11 +1751,20 @@ function renderPipeline(){
   </div>${h.reason?`<small style="color:#8a94a3;display:block;margin-top:4px">${esc(h.reason)}</small>`:''}
   <input type="text" value="${esc(h.observacao||'')}" placeholder="📝 Observação (opcional)..." onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter')this.blur()" onblur="event.stopPropagation();saveContactObservation(${h.id},this.value)" style="width:100%;margin-top:6px;border:1px solid #e5e7eb;border-radius:6px;padding:5px 7px;font-size:11.5px;box-sizing:border-box;font-family:inherit">
   </div>`).join(''):'<div style="padding:10px;color:#8a94a3;font-size:12.5px">Nenhuma ligação ou WhatsApp registrado ainda. Toda vez que você usar os botões 📞/💬 do CRM para uma empresa ou contato, o registro aparece aqui automaticamente.</div>'}<div style="padding:8px 4px 2px;color:#8a94a3;font-size:11px">💡 Arraste um card para uma etapa ao lado (ex: Reunião) para criar uma oportunidade a partir dele.</div></div>`;
- document.getElementById('pipeline').innerHTML=`<div class="page-head"><div><h1>Pipeline</h1><p>Arraste oportunidades entre as etapas para atualizar o funil — ou arraste o título de uma coluna para reordenar.</p></div><button class="btn primary" onclick="openForm('deal')">＋ Nova oportunidade</button></div><div class="pipeline">${contactColumn}${dealStages.map(s=>`<div class="stage" data-col-id="${esc(s)}" data-stage="${s}" ondragover="event.preventDefault();this.classList.add('drop-target')" ondragleave="this.classList.remove('drop-target')" ondrop="dropDeal(event,'${s}')"><h4 title="Arraste para reordenar a coluna">${s}<span>${data.deals.filter(d=>d.stage===s).length}</span></h4>${data.deals.filter(d=>d.stage===s).map(d=>`<div class="deal" draggable="true" style="${d.destaque?'background:'+HIGHLIGHT_COLORS[d.destaque].bg+';':''}${isNew(d)?'border:1px solid #16a34a;box-shadow:0 0 0 2px rgba(22,163,74,.15);':''}cursor:pointer" ondragstart="event.dataTransfer.setData('text/plain','deal:${d.id}')" onclick="showDealDetails(${d.id})"><div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start"><div style="min-width:0"><b>${esc(d.company)}</b>${isNew(d)?' <span class="tag green" style="font-size:10px">🆕 novo</span>':''}<small>${esc(d.title)}</small></div><div style="display:flex;gap:3px;flex-shrink:0"><button class="btn small" style="padding:4px 6px" title="Destacar card" onclick="event.stopPropagation();openDestaqueMenu('deals',${d.id})">${d.destaque?HIGHLIGHT_COLORS[d.destaque].dot:'🏳️'}</button><button class="btn small" style="padding:4px 6px" title="Editar" onclick="event.stopPropagation();editItem('deal',${d.id})">✎</button><button class="btn small danger" style="padding:4px 6px" title="Excluir" onclick="event.stopPropagation();del('deals',${d.id})">🗑</button></div></div><div class="money">${money(d.value)}</div><small>${d.prob}% • ${d.priority}</small>${dealContactLine(d.company)}</div>`).join('')}</div>`).join('')}</div>`;
+ document.getElementById('pipeline').innerHTML=`<div class="page-head"><div><h1>Pipeline</h1><p>Arraste oportunidades entre as etapas para atualizar o funil — ou arraste o título de uma coluna para reordenar.</p></div><button class="btn primary" onclick="openForm('deal')">＋ Nova oportunidade</button></div><div class="pipeline">${contactColumn}${dealStages.map(s=>`<div class="stage" data-col-id="${esc(s)}" data-stage="${s}" ondragover="event.preventDefault();this.classList.add('drop-target')" ondragleave="this.classList.remove('drop-target')" ondrop="dropDeal(event,'${s}')"><h4 title="Arraste para reordenar a coluna">${s}<span>${data.deals.filter(d=>d.stage===s).length}</span></h4>${data.deals.filter(d=>d.stage===s).map(d=>`<div class="deal" data-deal-id="${d.id}" draggable="true" style="${d.destaque?'background:'+HIGHLIGHT_COLORS[d.destaque].bg+';':''}${isNew(d)?'border:1px solid #16a34a;box-shadow:0 0 0 2px rgba(22,163,74,.15);':''}cursor:pointer" ondragstart="event.dataTransfer.setData('text/plain','deal:${d.id}')" onclick="showDealDetails(${d.id})"><div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start"><div style="min-width:0"><b>${esc(d.company)}</b>${isNew(d)?' <span class="tag green" style="font-size:10px">🆕 novo</span>':''}<small>${esc(d.title)}</small></div><div style="display:flex;gap:3px;flex-shrink:0"><button class="btn small" style="padding:4px 6px" title="Destacar card" onclick="event.stopPropagation();openDestaqueMenu('deals',${d.id})">${d.destaque?HIGHLIGHT_COLORS[d.destaque].dot:'🏳️'}</button><button class="btn small" style="padding:4px 6px" title="Editar" onclick="event.stopPropagation();editItem('deal',${d.id})">✎</button><button class="btn small danger" style="padding:4px 6px" title="Excluir" onclick="event.stopPropagation();del('deals',${d.id})">🗑</button></div></div><div class="money">${money(d.value)}</div><small>${d.prob}% • ${d.priority}</small>${dealContactLine(d.company)}</div>`).join('')}</div>`).join('')}</div>`;
  applyPipelineColumnOrder();
  initPipelineColumnReorder();
  const newPipelineEl=document.querySelector('#pipeline .pipeline');
  if(newPipelineEl)newPipelineEl.scrollLeft=prevScrollLeft;
+ if(_dealFocusId){
+  const fid=_dealFocusId;_dealFocusId=null;
+  const card=document.querySelector('#pipeline .deal[data-deal-id="'+fid+'"]');
+  if(card){
+   card.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});
+   card.classList.add('flash-highlight');
+   setTimeout(()=>card.classList.remove('flash-highlight'),1800);
+  }
+ }
 }
 function resolveTaskContact(t){
  if(!t.contact)return null;
@@ -1955,16 +1995,27 @@ function renderProposals(){
  const rows=data.proposals.map(p=>{
   const due=proposalDueInfo(p);
   const phone=companyPhone(p.company);
-  return `<tr data-status="${esc(p.status)}" data-due="${due?due.label==='Vencida'?'Vencida':'Vencendo':''}" class="ftxt-${followupClsByCompanyName(p.company)}"><td><b><a href="#" onclick="event.preventDefault();showCompanyDetailsByName('${String(p.company).replace(/'/g,"’")}')" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(p.company)}</a></b></td><td>${esc(p.item)}</td><td>${money(p.value)}</td><td>${p.date}${due?` <span class="tag ${due.cls}">${due.ic} ${due.label}</span>`:''}</td><td><span class="tag ${p.status==='Aguardando'?'orange':p.status==='Enviada'?'green':p.status==='Aprovada'?'green':p.status==='Recusada'?'red':''}">${p.status}</span></td><td>${proposalActionIcons(phone,p.company,p.id)} <button class="btn small" onclick="editItem('proposal',${p.id})">Editar</button> <button class="btn small danger" onclick="del('proposals',${p.id})">Excluir</button></td></tr>`;
+  return `<tr data-status="${esc(p.status)}" data-due="${due?due.label==='Vencida'?'Vencida':'Vencendo':''}" data-proposal-id="${p.id}" class="ftxt-${followupClsByCompanyName(p.company)}"><td><b><a href="#" onclick="event.preventDefault();showCompanyDetailsByName('${String(p.company).replace(/'/g,"’")}')" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(p.company)}</a></b></td><td>${esc(p.item)}</td><td>${money(p.value)}</td><td>${p.date}${due?` <span class="tag ${due.cls}">${due.ic} ${due.label}</span>`:''}</td><td><span class="tag ${p.status==='Aguardando'?'orange':p.status==='Enviada'?'green':p.status==='Aprovada'?'green':p.status==='Recusada'?'red':''}">${p.status}</span></td><td>${proposalActionIcons(phone,p.company,p.id)} <button class="btn small" onclick="editItem('proposal',${p.id})">Editar</button> <button class="btn small danger" onclick="del('proposals',${p.id})">Excluir</button></td></tr>`;
  }).join('');
  document.getElementById('propostas').innerHTML=tablePage('Propostas','Criação, acompanhamento e vencimento de propostas',`<button class="btn primary" onclick="openForm('proposal')">＋ Nova proposta</button>`,
  `<div class="grid stat-grid" style="margin-bottom:14px">${reportCard('Total de propostas',total,"openDashboardDetails('allProposals')")}${reportCard('Valor total em propostas',money(totalValue),"openDashboardDetails('proposalsValue')")}${reportCard('⚠️ Vencendo (7 dias)',vencendo,"openDashboardDetails('proposalsVencendo')")}${reportCard('⛔ Vencidas',vencidas,"openDashboardDetails('proposalsVencidas')")}</div>
  <div class="toolbar"><input id="proposalsSearchInput" placeholder="Pesquisar proposta..." oninput="filterProposalsSearch(this.value)"><select id="proposalsStatusSelect" onchange="filterProposalsStatus(this.value)"><option value="">Todos os status</option><option value="Vencida">⚠️ Vencidas</option><option value="Vencendo">⚠️ Vencendo (7 dias)</option><option value="Rascunho">Rascunho</option><option value="Enviada">Enviada</option><option value="Aguardando">Aguardando</option><option value="Aprovada">Aprovada</option><option value="Recusada">Recusada</option></select></div>
  <div class="card table-wrap"><table class="table" id="proposalsTable" data-table-group="propostas"><thead><tr><th data-col="0">Empresa</th><th data-col="1">Produto/Serviço</th><th data-col="2">Valor</th><th data-col="3">Vencimento</th><th data-col="4">Status</th><th data-col="5">Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`);
  document.getElementById('proposalsSearchInput').value=_pageFilters.propostas.search||'';
+ if(_proposalFocusId)_pageFilters.propostas.status='';
  document.getElementById('proposalsStatusSelect').value=_pageFilters.propostas.status||'';
  applyProposalsFilter();
  setupReorderableTables('propostas');
+ if(_proposalFocusId){
+  const fid=_proposalFocusId;_proposalFocusId=null;
+  const row=document.querySelector('#proposalsTable tr[data-proposal-id="'+fid+'"]');
+  if(row){
+   row.style.display='';
+   row.scrollIntoView({behavior:'smooth',block:'center'});
+   row.classList.add('flash-highlight');
+   setTimeout(()=>row.classList.remove('flash-highlight'),1800);
+  }
+ }
 }
 function applyProposalsFilter(){
  const q=(_pageFilters.propostas.search||'').toLowerCase();
@@ -2571,6 +2622,10 @@ function quickTask(companyName){openForm('task',null,{company:companyName})}
 function openTaskFromCompany(companyId,companyName){_taskReturnCompanyId=companyId;closeCompanyDetails();quickTask(companyName)}
 function quickProposal(companyName){openForm('proposal',null,{company:companyName})}
 function quickDeal(companyName){openForm('deal',null,{company:companyName})}
+function openDealFromCompany(companyId,companyName){_dealReturnCompanyId=companyId;closeCompanyDetails();quickDeal(companyName)}
+function openProposalFromCompany(companyId,companyName){_proposalReturnCompanyId=companyId;closeCompanyDetails();quickProposal(companyName)}
+function focusDeal(id){_dealFocusId=id;showPage('pipeline')}
+function focusProposal(id){_proposalFocusId=id;showPage('propostas')}
 function contactDatalistOptions(companyName){
  const name=String(companyName||'').trim();
  const list=name?data.contacts.filter(c=>c.company===name):[];
@@ -2580,6 +2635,41 @@ function refreshContactDatalist(){
  const dl=document.getElementById('contactDatalist');
  if(!dl)return;
  dl.innerHTML=contactDatalistOptions(document.getElementById('f_company')?.value);
+}
+let _taskChips=[];
+function taskTitleFieldHtml(value){
+ _taskChips=value?value.split(' + ').map(s=>s.trim()).filter(Boolean):[];
+ const presets=[['📞 Ligação','Ligação','Ligação'],['📅 Agendar reunião','Agendar reunião','Reunião'],['🤝 Manter network','Manter contato/network','Tarefa'],['🔎 Ver demandas','Ver demandas','Tarefa']];
+ return `<div class="field" style="grid-column:1/-1"><label>Tarefa</label>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${presets.map(([label,title,ty])=>`<button type="button" class="btn small" data-preset-title="${esc(title)}" onclick="toggleTaskChip('${title.replace(/'/g,"’")}','${ty}')">${label}</button>`).join('')}</div>
+  <div id="taskChipsBox" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
+  <input id="taskFreeTextInput" type="text" placeholder="Digite um texto livre e pressione Enter para adicionar..." onkeydown="if(event.key==='Enter'){event.preventDefault();addFreeTextChip(this.value);this.value=''}">
+  <input type="hidden" id="f_title" value="${esc(value||'')}">
+ </div>`;
+}
+function toggleTaskChip(title,ty){
+ const idx=_taskChips.indexOf(title);
+ if(idx>=0){_taskChips.splice(idx,1)}
+ else{_taskChips.push(title);const sel=document.getElementById('f_type');if(sel)sel.value=ty}
+ renderTaskChips();
+}
+function addFreeTextChip(text){
+ text=String(text||'').trim();
+ if(!text||_taskChips.includes(text))return;
+ _taskChips.push(text);
+ renderTaskChips();
+}
+function removeTaskChip(text){
+ _taskChips=_taskChips.filter(c=>c!==text);
+ renderTaskChips();
+}
+function renderTaskChips(){
+ const box=document.getElementById('taskChipsBox');
+ if(!box)return;
+ box.innerHTML=_taskChips.map(c=>`<span style="display:inline-flex;align-items:center;gap:6px;border:1.5px solid #3b82f6;color:#1d4ed8;background:#eff6ff;border-radius:20px;padding:5px 10px 5px 12px;font-size:12.5px;font-weight:600">${esc(c)}<span style="cursor:pointer;color:#93b8f0;font-weight:700" onclick="removeTaskChip('${c.replace(/'/g,"’")}')">✕</span></span>`).join('');
+ document.querySelectorAll('#modalBody button[data-preset-title]').forEach(b=>b.classList.toggle('primary',_taskChips.includes(b.dataset.presetTitle)));
+ const hidden=document.getElementById('f_title');
+ if(hidden)hidden.value=_taskChips.join(' + ');
 }
 function openForm(type,id=null,prefill=null){
  // Fecha qualquer janela de "detalhes" que esteja aberta por trás, senão o
@@ -2600,14 +2690,21 @@ function openForm(type,id=null,prefill=null){
  event:{title:edit?'Editar reunião':'Agendar reunião',collection:'events',fields:[['title','Título','text',edit?.title||'Reunião comercial'],['company','Empresa','company-select',edit?.company||prefill?.company||''],['date','Data','date',edit?.date||today()],['time','Hora','time',edit?.time||'14:00']]}
  };
  const d=defs[type];document.getElementById('modalTitle').textContent=d.title;
- document.getElementById('modalBody').innerHTML=`<div class="form-grid">${d.fields.map(f=>{ if(f[2]==='select') return `<div class="field"><label>${f[1]}</label><select id="f_${f[0]}">${f[4].map(o=>`<option ${o===f[3]?'selected':''}>${o}</option>`).join('')}</select></div>`; if(f[2]==='company-select'){ return `<div class="field"><label>${f[1]} <a href="#" onclick="event.preventDefault();quickAddCompany('${type}',${id?id:'null'})" style="font-size:12px;font-weight:600;color:#3b82f6;margin-left:8px">＋ Nova empresa</a></label><input id="f_${f[0]}" list="companyDatalist" autocomplete="off" placeholder="Digite para buscar uma empresa..." value="${esc(f[3]||'')}" oninput="refreshContactDatalist()"></div>`;} if(f[2]==='contact-select'){ return `<div class="field"><label>${f[1]}</label><input id="f_${f[0]}" list="contactDatalist" autocomplete="off" placeholder="Digite o nome da empresa acima primeiro..." value="${esc(f[3]||'')}"></div>`;} if(f[2]==='textarea'){ return `<div class="field" style="grid-column:1/-1"><label>${f[1]}</label><textarea id="f_${f[0]}" rows="3" style="width:100%;resize:vertical">${esc(f[3]||'')}</textarea></div>`;} return `<div class="field"><label>${f[1]}</label><input id="f_${f[0]}" type="${f[2]}" value="${esc(f[3])}" ${['phone','cel','tel'].includes(f[0])?`onblur="this.value=formatPhoneBR(this.value)" placeholder="(21) 99999-9999"`:''}></div>`; }).join('')}</div>${(()=>{
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid">${d.fields.map(f=>{ if(type==='task' && f[0]==='title') return taskTitleFieldHtml(f[3]); if(f[2]==='select') return `<div class="field"><label>${f[1]}</label><select id="f_${f[0]}">${f[4].map(o=>`<option ${o===f[3]?'selected':''}>${o}</option>`).join('')}</select></div>`; if(f[2]==='company-select'){ return `<div class="field"><label>${f[1]} <a href="#" onclick="event.preventDefault();quickAddCompany('${type}',${id?id:'null'})" style="font-size:12px;font-weight:600;color:#3b82f6;margin-left:8px">＋ Nova empresa</a></label><input id="f_${f[0]}" list="companyDatalist" autocomplete="off" placeholder="Digite para buscar uma empresa..." value="${esc(f[3]||'')}" oninput="refreshContactDatalist()"></div>`;} if(f[2]==='contact-select'){ return `<div class="field"><label>${f[1]}</label><input id="f_${f[0]}" list="contactDatalist" autocomplete="off" placeholder="Digite o nome da empresa acima primeiro..." value="${esc(f[3]||'')}"></div>`;} if(f[2]==='textarea'){ return `<div class="field" style="grid-column:1/-1"><label>${f[1]}</label><textarea id="f_${f[0]}" rows="3" style="width:100%;resize:vertical">${esc(f[3]||'')}</textarea></div>`;} return `<div class="field"><label>${f[1]}</label><input id="f_${f[0]}" type="${f[2]}" value="${esc(f[3])}" ${['phone','cel','tel'].includes(f[0])?`onblur="this.value=formatPhoneBR(this.value)" placeholder="(21) 99999-9999"`:''}></div>`; }).join('')}</div>${(()=>{
   if(type!=='task')return '';
   const companyForContext=edit?.company||prefill?.company||'';
   const lastResult=lastTaskResultForCompany(companyForContext,id);
   if(!lastResult)return '';
   return `<div class="field" style="grid-column:1/-1;background:#eff6ff;border-radius:8px;padding:10px 12px;margin-top:4px"><b style="font-size:12.5px;color:#1e40af">📋 Última tarefa com essa empresa (${fmtDateBR(new Date(lastResult.date+'T00:00:00'))}) — ${esc(lastResult.title)}</b><div style="font-size:13px;color:#334155;margin-top:4px;white-space:pre-wrap">${esc(lastResult.resultado)}</div></div>`;
  })()}<datalist id="companyDatalist">${[...data.companies].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(c=>`<option value="${esc(c.name)}">${c.city?esc(c.city):''}</option>`).join('')}</datalist><datalist id="contactDatalist">${contactDatalistOptions(edit?.company||prefill?.company||'')}</datalist>${type==='company'&&id?companyContactsPanel(edit?.name||'',id):''}`;
- document.getElementById('modalSave').onclick=()=>saveForm(type,d.collection,id);
+ if(type==='task')renderTaskChips();
+ document.getElementById('modalSave').onclick=()=>{
+  if(type==='task'){
+   const free=document.getElementById('taskFreeTextInput');
+   if(free&&free.value.trim()){addFreeTextChip(free.value);free.value=''}
+  }
+  saveForm(type,d.collection,id);
+ };
  document.getElementById('modal').classList.add('open');
 }
 
@@ -2843,10 +2940,26 @@ function saveForm(type,collection,id){
  }
  const savedId=id||obj.id;
  if(type==='task'){_taskFocusId=savedId}
+ if(type==='deal'){_dealFocusId=savedId}
+ if(type==='proposal'){_proposalFocusId=savedId}
  if(type==='task' && _taskReturnCompanyId){
   const cid=_taskReturnCompanyId;_taskReturnCompanyId=null;
   closeModal();save();
   toast((id?'Tarefa atualizada':'Tarefa criada')+extraMsg,{label:'Ver tarefa',onclick:`focusTask(${savedId})`});
+  showCompanyDetails(cid);
+  return;
+ }
+ if(type==='deal' && _dealReturnCompanyId){
+  const cid=_dealReturnCompanyId;_dealReturnCompanyId=null;
+  closeModal();save();
+  toast((id?'Oportunidade atualizada':'Oportunidade criada e disponível no Pipeline')+extraMsg,{label:'Ver oportunidade',onclick:`focusDeal(${savedId})`});
+  showCompanyDetails(cid);
+  return;
+ }
+ if(type==='proposal' && _proposalReturnCompanyId){
+  const cid=_proposalReturnCompanyId;_proposalReturnCompanyId=null;
+  closeModal();save();
+  toast((id?'Proposta atualizada':'Proposta criada')+extraMsg,{label:'Ver proposta',onclick:`focusProposal(${savedId})`});
   showCompanyDetails(cid);
   return;
  }
@@ -2872,6 +2985,8 @@ function saveForm(type,collection,id){
  if(type==='deal' && !id)baseMsg='Oportunidade criada e disponível no Pipeline';
  closeModal();save();
  if(type==='task')toast(baseMsg+extraMsg,{label:'Ver tarefa',onclick:`focusTask(${savedId})`});
+ else if(type==='deal')toast(baseMsg+extraMsg,{label:'Ver oportunidade',onclick:`focusDeal(${savedId})`});
+ else if(type==='proposal')toast(baseMsg+extraMsg,{label:'Ver proposta',onclick:`focusProposal(${savedId})`});
  else toast(baseMsg+extraMsg);
 }
 function closeModal(){document.getElementById('modal').classList.remove('open')}
@@ -2884,14 +2999,14 @@ function quickAddCompany(returnType,returnId){
  pendingReturnId=returnId;
  openForm('company');
 }
-function companyDealsPanel(companyName){
+function companyDealsPanel(companyName,companyId){
  const deals=data.deals.filter(d=>d.company===companyName).sort((a,b)=>(a.stage==='Fechado')-(b.stage==='Fechado')||b.value-a.value);
  const rows=deals.length?deals.map(d=>`<div class="list-row" style="align-items:center;flex-wrap:wrap;gap:8px">
     <div class="row-main" style="min-width:0"><b>${esc(d.title)}</b><small>${money(d.value)} • ${d.prob}% • ${esc(d.priority)}</small></div>
     <div style="display:flex;gap:6px;align-items:center;flex-shrink:0"><span class="tag ${d.stage==='Fechado'?'green':''}">${esc(d.stage)}</span><button class="btn small" onclick="event.preventDefault();closeCompanyDetails();editItem('deal',${d.id})" title="Editar">✎</button></div>
    </div>`).join(''):'<div style="padding:10px;color:#8a94a3;font-size:13px">Nenhuma oportunidade em aberto.</div>';
  return `<div class="card panel" style="margin-top:16px">
-   <div class="panel-head"><h3>Oportunidades</h3><a href="#" onclick="event.preventDefault();closeCompanyDetails();quickDeal('${String(companyName).replace(/'/g,"’")}')" style="font-size:12px;font-weight:600;color:#3b82f6">＋ Nova oportunidade</a></div>
+   <div class="panel-head"><h3>Oportunidades</h3><a href="#" onclick="event.preventDefault();openDealFromCompany(${companyId},'${String(companyName).replace(/'/g,"’")}')" style="font-size:12px;font-weight:600;color:#3b82f6">＋ Nova oportunidade</a></div>
    ${rows}
   </div>`;
 }
@@ -2906,14 +3021,14 @@ function companyTasksPanel(companyName,companyId){
    ${rows}
   </div>`;
 }
-function companyProposalsPanel(companyName){
+function companyProposalsPanel(companyName,companyId){
  const proposals=data.proposals.filter(p=>p.company===companyName).sort((a,b)=>b.date.localeCompare(a.date));
  const rows=proposals.length?proposals.map(p=>`<div class="list-row" style="align-items:center;flex-wrap:wrap;gap:8px">
     <div class="row-main" style="min-width:0"><b>${esc(p.item)}</b><small>${money(p.value)} • ${p.date}</small></div>
     <div style="display:flex;gap:6px;align-items:center;flex-shrink:0"><span class="tag ${p.status==='Aguardando'?'orange':p.status==='Enviada'?'green':p.status==='Aprovada'?'green':p.status==='Recusada'?'red':''}">${esc(p.status)}</span><button class="btn small" onclick="event.preventDefault();closeCompanyDetails();editItem('proposal',${p.id})" title="Editar">✎</button></div>
    </div>`).join(''):'<div style="padding:10px;color:#8a94a3;font-size:13px">Nenhuma proposta registrada.</div>';
  return `<div class="card panel" style="margin-top:16px">
-   <div class="panel-head"><h3>Propostas</h3><a href="#" onclick="event.preventDefault();closeCompanyDetails();quickProposal('${String(companyName).replace(/'/g,"’")}')" style="font-size:12px;font-weight:600;color:#3b82f6">＋ Nova proposta</a></div>
+   <div class="panel-head"><h3>Propostas</h3><a href="#" onclick="event.preventDefault();openProposalFromCompany(${companyId},'${String(companyName).replace(/'/g,"’")}')" style="font-size:12px;font-weight:600;color:#3b82f6">＋ Nova proposta</a></div>
    ${rows}
   </div>`;
 }
