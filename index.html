@@ -30,6 +30,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 .taskcard{background:#fff;border:1px solid #edf0f4;border-radius:12px;box-shadow:var(--shadow);padding:13px 14px;margin-bottom:9px;position:relative}.taskcard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.taskcard .when{font-size:11.5px;color:#8a94a3;font-weight:700;min-width:64px}.taskcard .main b{font-size:14px;display:block}.taskcard .main small{color:var(--muted);display:block;margin-top:2px}.taskcard .bottom-row{display:flex;align-items:center;justify-content:space-between;margin-top:11px;gap:8px;flex-wrap:wrap}.taskcard .chan-icons{display:flex;gap:6px}
 .icon-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px}.icon-btn.danger{color:var(--red);border-color:#fecaca}
 .taskmenu-wrap{position:relative;display:inline-block}.taskmenu{position:absolute;right:0;top:36px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.15);min-width:170px;z-index:20;overflow:hidden}.taskmenu button{display:block;width:100%;text-align:left;padding:10px 14px;border:0;background:#fff;font-size:13px;cursor:pointer;color:#263342}.taskmenu button:hover{background:#f5f7fb}.taskmenu button.danger{color:var(--red)}
+@keyframes taskFlash{0%{background:#dbeafe}100%{background:#fff}}.flash-highlight{animation:taskFlash 1.8s ease-out}
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.day{background:#fff;border:1px solid var(--line);min-height:110px;padding:8px;border-radius:8px}.day b{font-size:12px}.event{background:#edf5ff;color:#1f5b9d;padding:5px;border-radius:5px;margin-top:7px;font-size:11px}
 .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}.field.full{grid-column:1/-1}.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}.modal.open{display:flex}.modal-box{width:min(720px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:15px;box-shadow:0 25px 80px rgba(0,0,0,.25)}.modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.modal-body{padding:20px}.modal-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
 .toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:12px 16px;border-radius:9px;box-shadow:0 10px 30px #0003;display:none;z-index:200}.toast.show{display:block}
@@ -174,7 +175,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v16.05 · 2026-09-10 · Adicionado 🗑 Excluir nas Tarefas pendentes dentro do card 360° da Empresa (antes só tinha ✔ Concluir e ✎ Editar) — pede confirmação antes de excluir e o card atualiza sozinho na hora, sem precisar fechar e reabrir a ficha da empresa';
+const APP_BUILD='v16.06 · 2026-09-10 · Corrigida a sensação de "a tarefa some depois de criada" — sem mudar nenhuma regra já existente, só o comportamento depois de salvar: 1) o aviso de salvamento de tarefa agora vem com um botão "Ver tarefa" que leva direto até ela, de onde você estiver; 2) ao criar/editar uma tarefa, o grupo (Atrasadas/Hoje/Próximas/Concluídas) que contém ela abre sozinho na tela de Tarefas e o card pisca em azul por um instante pra você achar na hora; 3) criar uma tarefa a partir da ficha da Empresa (botão "📅 Tarefa" ou "＋ Nova tarefa" dentro de Tarefas pendentes) agora volta pra mesma ficha da empresa depois de salvar, já mostrando a tarefa nova na lista, em vez de te deixar solto em outra tela';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -931,7 +932,14 @@ function regionOfCity(city){
  if(!city)return 'Não informada';
  return REGION_BY_CITY[normalizeCity(city)]||'Outra região';
 }
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
+let _toastTimer=null;
+function toast(msg,action){
+ const t=document.getElementById('toast');
+ t.innerHTML=esc(msg)+(action?` <button type="button" onclick="${action.onclick};document.getElementById('toast').classList.remove('show')" style="margin-left:10px;background:#2f80ed;color:#fff;border:0;border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer">${esc(action.label)}</button>`:'');
+ t.classList.add('show');
+ clearTimeout(_toastTimer);
+ _toastTimer=setTimeout(()=>t.classList.remove('show'),action?4500:2400);
+}
 function today(){return new Date().toISOString().slice(0,10)}
 function digits(s){return String(s||'').replace(/\D/g,'')}
 function dedupeDoubledDigits(d){
@@ -1466,6 +1474,8 @@ function companyGroupTable(list,emptyMsg){
 }
 let _companyFilters={search:'',origin:'',region:''};
 let _pageFilters={contatos:{search:''},oportunidades:{search:''},tarefas:{search:''},propostas:{search:'',status:''}};
+let _taskFocusId=null;
+let _taskReturnCompanyId=null;
 function applyCompanyFilters(){
  const q=(_companyFilters.search||'').toLowerCase().trim();
  const origin=_companyFilters.origin||'';
@@ -1536,7 +1546,7 @@ function showCompanyDetails(id){
  ${companyProposalsPanel(c.name)}`;
  document.getElementById('companyDetailEditBtn').onclick=()=>{closeCompanyDetails();editItem('company',id)};
  document.getElementById('companyDetailDeleteBtn').onclick=()=>{closeCompanyDetails();del('companies',id)};
- document.getElementById('companyDetailTaskBtn').onclick=()=>{closeCompanyDetails();quickTask(c.name)};
+ document.getElementById('companyDetailTaskBtn').onclick=()=>{openTaskFromCompany(id,c.name)};
  document.getElementById('companyDetailProposalBtn').onclick=()=>{closeCompanyDetails();quickProposal(c.name)};
  document.getElementById('companyDetailDealBtn').onclick=()=>{closeCompanyDetails();quickDeal(c.name)};
  document.getElementById('companyDetailModal').classList.add('open');
@@ -1823,7 +1833,7 @@ function taskCardHtml(t){
  const overdueDays=(t.status!=='Concluída'&&t.date<now)?Math.round((new Date(now+'T00:00:00')-new Date(t.date+'T00:00:00'))/86400000):0;
  const statusTag=t.status==='Concluída'?`<span class="tag green">✅ Concluída</span>`:overdueDays>0?`<span class="tag red">${overdueDays} dia(s) atrasada</span>`:`<span class="tag">${esc(t.type)}</span>`;
  const followUp=(t.autoFollowUp&&t.status!=='Concluída')?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid #f0f2f5;display:flex;gap:6px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()"><small style="color:#8a94a3">Reagendar:</small>${followUpButtonsHtml(t)}</div>`:'';
- return `<div class="taskcard search-item">
+ return `<div class="taskcard search-item" data-task-id="${t.id}">
   <div class="top">
    <div class="when">${fmtDateBR(new Date(t.date+'T00:00:00')).slice(0,5)}<br>${esc(t.time||'')}</div>
    <div class="main" style="flex:1;min-width:0;cursor:pointer" onclick="showTaskDetails(${t.id})">${t.company?`<small style="color:#8a94a3;font-weight:600">${esc(t.company)}</small>`:''}<b>${esc(t.title)}</b>${contactName?`<small>${esc(contactName)}${(cel||tel)?' · '+esc(cel||tel):''}</small>`:''}</div>
@@ -1868,7 +1878,23 @@ function renderTasks(){
  ${dailySuggestionsPanel()}`);
  document.getElementById('tasksSearchInput').value=_pageFilters.tarefas.search||'';
  filterGroupedSearch('tarefas',_pageFilters.tarefas.search||'');
+ if(_taskFocusId){
+  const fid=_taskFocusId;_taskFocusId=null;
+  const groups=[['grp-tasks-overdue',overdue],['grp-tasks-today',todayT],['grp-tasks-upcoming',upcoming],['grp-tasks-done',doneSorted]];
+  const hit=groups.find(([,list])=>list.some(t=>t.id===fid));
+  if(hit){
+   const body=document.getElementById(hit[0]);
+   if(body&&body.style.display==='none')toggleGroup(hit[0]);
+   const card=document.querySelector('#'+hit[0]+' .taskcard[data-task-id="'+fid+'"]');
+   if(card){
+    card.scrollIntoView({behavior:'smooth',block:'center'});
+    card.classList.add('flash-highlight');
+    setTimeout(()=>card.classList.remove('flash-highlight'),1800);
+   }
+  }
+ }
 }
+function focusTask(id){_taskFocusId=id;showPage('tarefas')}
 function showTaskDetails(id){
  const t=data.tasks.find(x=>x.id===id);
  if(!t)return;
@@ -2542,6 +2568,7 @@ function closeDashboardDetails(){
 }
 
 function quickTask(companyName){openForm('task',null,{company:companyName})}
+function openTaskFromCompany(companyId,companyName){_taskReturnCompanyId=companyId;closeCompanyDetails();quickTask(companyName)}
 function quickProposal(companyName){openForm('proposal',null,{company:companyName})}
 function quickDeal(companyName){openForm('deal',null,{company:companyName})}
 function contactDatalistOptions(companyName){
@@ -2814,6 +2841,15 @@ function saveForm(type,collection,id){
    if(type==='proposal') extraMsg+=createDealForProposal(obj);
    if(type==='proposal') extraMsg+=scheduleProposalReminder(obj);
  }
+ const savedId=id||obj.id;
+ if(type==='task'){_taskFocusId=savedId}
+ if(type==='task' && _taskReturnCompanyId){
+  const cid=_taskReturnCompanyId;_taskReturnCompanyId=null;
+  closeModal();save();
+  toast((id?'Tarefa atualizada':'Tarefa criada')+extraMsg,{label:'Ver tarefa',onclick:`focusTask(${savedId})`});
+  showCompanyDetails(cid);
+  return;
+ }
  if(type==='company' && !id && pendingReturnForm){
   const rt=pendingReturnForm,rid=pendingReturnId,newName=obj.name;
   pendingReturnForm=null;pendingReturnId=null;
@@ -2834,7 +2870,9 @@ function saveForm(type,collection,id){
  }
  let baseMsg=id?'Registro atualizado':'Registro criado';
  if(type==='deal' && !id)baseMsg='Oportunidade criada e disponível no Pipeline';
- closeModal();save();toast(baseMsg+extraMsg);
+ closeModal();save();
+ if(type==='task')toast(baseMsg+extraMsg,{label:'Ver tarefa',onclick:`focusTask(${savedId})`});
+ else toast(baseMsg+extraMsg);
 }
 function closeModal(){document.getElementById('modal').classList.remove('open')}
 function getItem(type,id){const col={company:'companies',contact:'contacts',deal:'deals',task:'tasks',proposal:'proposals',product:'products',event:'events'}[type];return data[col].find(x=>x.id===id)}
@@ -2864,7 +2902,7 @@ function companyTasksPanel(companyName,companyId){
     <div style="display:flex;gap:4px;flex-shrink:0"><button class="btn small success" onclick="event.preventDefault();completeTask(${t.id});showCompanyDetails(${companyId})" title="Concluir">✔</button><button class="btn small" onclick="event.preventDefault();closeCompanyDetails();editItem('task',${t.id})" title="Editar">✎</button><button class="btn small danger" onclick="event.preventDefault();showConfirm('Excluir esta tarefa?',()=>{data.tasks=data.tasks.filter(x=>x.id!==${t.id});save();toast('Tarefa excluída');showCompanyDetails(${companyId})},'Excluir')" title="Excluir">🗑</button></div>
    </div>`).join(''):'<div style="padding:10px;color:#8a94a3;font-size:13px">Nenhuma tarefa pendente.</div>';
  return `<div class="card panel" style="margin-top:16px">
-   <div class="panel-head"><h3>Tarefas pendentes</h3><a href="#" onclick="event.preventDefault();closeCompanyDetails();quickTask('${String(companyName).replace(/'/g,"’")}')" style="font-size:12px;font-weight:600;color:#3b82f6">＋ Nova tarefa</a></div>
+   <div class="panel-head"><h3>Tarefas pendentes</h3><a href="#" onclick="event.preventDefault();openTaskFromCompany(${companyId},'${String(companyName).replace(/'/g,"’")}')" style="font-size:12px;font-weight:600;color:#3b82f6">＋ Nova tarefa</a></div>
    ${rows}
   </div>`;
 }
