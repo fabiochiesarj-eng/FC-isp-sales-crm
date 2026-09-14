@@ -175,7 +175,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v16.15 · 2026-09-10 · Ao concluir uma tarefa e escolher o próximo contato (card "O que aconteceu nessa tarefa?"), o CRM não abre mais sozinho o card da tarefa nova — agora fica na mesma página onde você estava (Tarefas, Agenda, Inteligência Comercial, dentro da ficha da Empresa, etc.), pra você seguir direto pro próximo contato. O toast de confirmação ganhou um atalho "Ver tarefa" pra quem quiser abrir a tarefa nova por vontade própria';
+const APP_BUILD='v16.17 · 2026-09-10 · Corrigido na raiz (vale para todos os módulos de uma vez): grupos recolhíveis (🔴🟡🟢⚪ em Empresas, Atrasadas/Hoje/Próximas/Concluídas em Tarefas, e a lista de "Leads sugeridos para esta semana" em Inteligência Comercial) fechavam sozinhos toda vez que a tela era atualizada depois de qualquer ação — por exemplo, fechar um lead sugerido fechava a própria lista de sugestões junto, forçando reabrir na mão pra continuar. Agora o sistema lembra quais grupos você deixou abertos e mantém assim entre as atualizações da tela, incluindo depois de usar a busca';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -1552,10 +1552,8 @@ function applyCompanyFilters(){
    r.style.display=show?'':'none';
    if(show)anyVisible=true;
   });
-  if(body){
-   if(anyActive){body.style.display=anyVisible?'':'none';if(icon)icon.textContent=anyVisible?'▾':'▸'}
-   else{body.style.display='none';if(icon)icon.textContent='▸'}
-  }
+  if(body && anyActive){body.style.display=anyVisible?'':'none';if(icon)icon.textContent=anyVisible?'▾':'▸'}
+  else if(body){const open=!!_groupOpenState[body.id];body.style.display=open?'':'none';if(icon)icon.textContent=open?'▾':'▸'}
  });
 }
 function filterCompaniesSearch(q){_companyFilters.search=q;applyCompanyFilters()}
@@ -1826,15 +1824,18 @@ function resolveTaskContact(t){
  const name=parts[0],company=parts[1];
  return data.contacts.find(c=>c.name===name && (!company || c.company===company)) || data.contacts.find(c=>c.name===name) || null;
 }
+let _groupOpenState={};
 function toggleGroup(id){
  const el=document.getElementById(id),icon=document.getElementById(id+'-icon');
  if(!el)return;
  const open=el.style.display==='none';
  el.style.display=open?'':'none';
  if(icon)icon.textContent=open?'▾':'▸';
+ _groupOpenState[id]=open;
 }
 function groupSection(id,icon,color,label,count,bodyHtml){
- return `<div class="collapsible-group"><h3 style="margin:16px 0 8px;cursor:pointer;user-select:none;color:${color}" onclick="toggleGroup('${id}')">${icon} ${label}${count!=null?' ('+count+')':''} <span id="${id}-icon">▸</span></h3><div id="${id}" class="group-body" style="display:none">${bodyHtml}</div></div>`;
+ const isOpen=!!_groupOpenState[id];
+ return `<div class="collapsible-group"><h3 style="margin:16px 0 8px;cursor:pointer;user-select:none;color:${color}" onclick="toggleGroup('${id}')">${icon} ${label}${count!=null?' ('+count+')':''} <span id="${id}-icon">${isOpen?'▾':'▸'}</span></h3><div id="${id}" class="group-body" style="display:${isOpen?'':'none'}">${bodyHtml}</div></div>`;
 }
 function filterGroupedSearch(pageId,q){
  q=String(q||'').toLowerCase().trim();
@@ -1847,10 +1848,8 @@ function filterGroupedSearch(pageId,q){
    r.style.display=show?'':'none';
    if(show)anyVisible=true;
   });
-  if(body){
-   if(q){body.style.display=anyVisible?'':'none';if(icon)icon.textContent=anyVisible?'▾':'▸'}
-   else{body.style.display='none';if(icon)icon.textContent='▸'}
-  }
+  if(body && q){body.style.display=anyVisible?'':'none';if(icon)icon.textContent=anyVisible?'▾':'▸'}
+  else if(body){const open=!!_groupOpenState[body.id];body.style.display=open?'':'none';if(icon)icon.textContent=open?'▾':'▸'}
  });
 }
 function companyMagnitude(c){
@@ -2945,8 +2944,7 @@ function closeTaskResultModal(){
  save();
  document.getElementById('taskResultModal').classList.remove('open');
  _pendingTaskResultId=null;
- if(newId)toast('Tarefa concluída · próximo contato agendado',{label:'Ver tarefa',onclick:`focusTask(${newId})`});
- else toast('Tarefa concluída');
+ toast(newId?'Tarefa concluída · próximo contato agendado':'Tarefa concluída');
 }
 function saveTaskResult(){
  const t=data.tasks.find(x=>x.id===_pendingTaskResultId);
@@ -2955,8 +2953,7 @@ function saveTaskResult(){
  save();
  document.getElementById('taskResultModal').classList.remove('open');
  _pendingTaskResultId=null;
- if(newId)toast('Resultado registrado · próxima tarefa criada',{label:'Ver tarefa',onclick:`focusTask(${newId})`});
- else toast('Resultado registrado');
+ toast(newId?'Resultado registrado · próxima tarefa criada':'Resultado registrado');
 }
 function saveForm(type,collection,id){
  const defs={company:['name','cnpj','city','phone','address','email','segment','status','origin','leadScore','owner','notes'],contact:['name','company','role','cel','tel','email'],deal:['company','title','contact','value','stage','prob','priority','next','notes'],task:['title','company','contact','date','time','type','status','notes'],proposal:['company','item','value','date','status'],product:['name','category','price','active'],event:['title','company','date','time']};
