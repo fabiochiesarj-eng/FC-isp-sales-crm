@@ -175,7 +175,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v16.12 · 2026-09-10 · Corrigido outro número falso encontrado na revisão: o gráfico "Conversão por etapa" em Relatórios não usava nenhum dado real — era uma fórmula fixa (100 menos 13% por etapa) sem relação nenhuma com suas oportunidades de verdade. Agora mostra a contagem real de oportunidades em cada etapa (reaproveitando o mesmo cálculo de funil já usado no Dashboard)';
+const APP_BUILD='v16.14 · 2026-09-10 · O botão "✔ Contatada" (nas listas de leads sugeridos, tanto em Inteligência Comercial quanto em Tarefas) agora segue a mesma regra do módulo Tarefas: ao clicar, abre o mesmo card "O que aconteceu nessa tarefa?" — com campo de anotação e calendário pra marcar o próximo contato — em vez de só sumir a linha silenciosamente. O contato já fica registrado como concluído, e o próximo passo (ou "Não agendar") fica por sua conta, igual já funciona em qualquer tarefa';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -1904,8 +1904,10 @@ function suggestionRowHtml(c,i){
 }
 function markSuggestionContacted(companyName){
  logContact(companyName,'telefone');
- renderTasks();
- toast('Marcado como contatado hoje');
+ const newId=Date.now()+Math.floor(Math.random()*1000);
+ data.tasks.push({id:newId,title:'Contato com lead',company:companyName,contact:'',date:today(),time:new Date().toTimeString().slice(0,5),type:'Ligação',status:'Concluída'});
+ save();
+ openTaskResultModal(newId);
 }
 function dailySuggestionsPanel(){
  const sug=dailySuggestions();
