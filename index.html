@@ -70,7 +70,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:fle
 <header class="topbar">
   <button class="hamb" onclick="toggleSidebar()">☰</button><div class="title" id="topTitle">Dashboard</div>
   <div class="search"><span>⌕</span><input id="globalSearch" placeholder="Buscar empresas, contatos, oportunidades..." oninput="globalSearch(this.value)" autocomplete="off"></div>
-  <div class="top-actions"><button class="icon-btn" id="voiceBtn" onclick="toggleVoiceCommand()" title="Comando de voz">🎤</button><button class="icon-btn" onclick="showPage('tarefas')">✅<em class="badge-dot" id="notifyCount">5</em></button><button class="icon-btn" onclick="showPage('agenda')">📅</button><button class="icon-btn" onclick="showPage('config')">?</button><div class="profile"><div class="avatar">FC</div><div class="who"><b>Fábio Chiesa</b><small>Gerente de Contas</small></div></div></div>
+  <div class="top-actions"><span class="icon-btn" id="syncStatusBadge" onclick="showPage('config')" title="Status de sincronização" style="display:none;cursor:pointer">☁️</span><button class="icon-btn" id="voiceBtn" onclick="toggleVoiceCommand()" title="Comando de voz">🎤</button><button class="icon-btn" onclick="showPage('tarefas')">✅<em class="badge-dot" id="notifyCount">5</em></button><button class="icon-btn" onclick="showPage('agenda')">📅</button><button class="icon-btn" onclick="showPage('config')">?</button><div class="profile"><div class="avatar">FC</div><div class="who"><b>Fábio Chiesa</b><small>Gerente de Contas</small></div></div></div>
 </header>
 
 <div class="content">
@@ -175,7 +175,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v16.09 · 2026-09-10 · Campo "Tarefa" do formulário virou seleção múltipla: agora dá pra escolher mais de uma opção pré-escrita ao mesmo tempo (incluindo a nova "🔎 Ver demandas"), e o texto livre digitado também vira um totem — todos aparecem como totens com borda azul, removíveis com ✕, e são salvos juntos no título da tarefa (ex: "Ligação + Ver demandas + Falar sobre upgrade")';
+const APP_BUILD='v16.11 · 2026-09-10 · Três melhorias de desempenho/usabilidade: 1) corrigido ponto real de lentidão futura — o cálculo de "última interação" de cada empresa (usado em Empresas, Contatos, Propostas e Dashboard) escaneava Tarefas+Propostas+Oportunidades inteiras a cada chamada; agora esse cálculo é feito uma vez por tela e reaproveitado, sem mudar nenhum resultado (testado: zero diferença nas 249 empresas); 2) Contatos redesenhado em cards no mesmo padrão de Tarefas/Empresas; 3) novo indicador ☁️ na barra superior mostrando o status da sincronização com a nuvem em tempo real — 🔄 enviando, ☁️ sincronizado, ⚠️ erro (com o motivo) — antes esse status só existia escondido dentro de Configurações';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -381,6 +381,7 @@ const defaultData={
  events:[{id:1,title:'Reunião Conecta Itaguaí',date:'2026-08-13',time:'14:00',company:'Conecta Itaguaí'}]
 };
 let data=load();
+if(!data.automationLog)data.automationLog=[];
 if(!data.settings)data.settings={monthlyTarget:25000,leadConversionRate:0.07};
 if(data.settings.monthlyTarget==null)data.settings.monthlyTarget=25000;
 if(data.settings.leadConversionRate==null)data.settings.leadConversionRate=0.07;
@@ -592,7 +593,8 @@ if(!data._importedK2V1){
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||structuredClone(defaultData)}catch(e){return structuredClone(defaultData)}}
 let _suppressCloudPush=false;
 let _cloudPushTimer=null;
-function save(){localStorage.setItem(KEY,JSON.stringify(data));renderAll();if(!_suppressCloudPush)scheduleCloudPush()}
+let _companyActivityCache=null;
+function save(){_companyActivityCache=null;localStorage.setItem(KEY,JSON.stringify(data));renderAll();if(!_suppressCloudPush)scheduleCloudPush()}
 
 const SYNC_CFG_KEY='isp_sync_cfg_v1';
 const SYNC_LAST_KEY='isp_sync_last_v1';
@@ -615,11 +617,28 @@ function syncStatusText(){
  if(!last)return 'Configurado, ainda sem sincronizar';
  return 'Última sincronização: '+new Date(last).toLocaleString('pt-BR');
 }
-function updateSyncStatusUI(){const el=document.getElementById('syncStatusText');if(el)el.textContent=syncStatusText()}
+let _syncError=null;
+function updateSyncStatusUI(){
+ const el=document.getElementById('syncStatusText');if(el)el.textContent=syncStatusText();
+ updateSyncBadge();
+}
+function updateSyncBadge(){
+ const b=document.getElementById('syncStatusBadge');
+ if(!b)return;
+ const cfg=getSyncConfig();
+ if(!cfg||!cfg.url||!cfg.key||!cfg.syncId){b.style.display='none';return}
+ b.style.display='';
+ if(_syncError){b.textContent='⚠️';b.title='Erro ao sincronizar: '+_syncError;return}
+ if(localStorage.getItem(SYNC_PENDING_KEY)){b.textContent='🔄';b.title='Sincronizando alterações...';return}
+ const last=localStorage.getItem(SYNC_LAST_KEY);
+ b.textContent='☁️';
+ b.title=last?'Sincronizado · última vez: '+new Date(last).toLocaleString('pt-BR'):'Configurado, ainda sem sincronizar';
+}
 function scheduleCloudPush(){
  const cfg=getSyncConfig();
  if(!cfg||!cfg.url||!cfg.key||!cfg.syncId)return;
  localStorage.setItem(SYNC_PENDING_KEY,'1'); // marca que há alteração local ainda não enviada (sobrevive a fechar o app)
+ updateSyncBadge();
  clearTimeout(_cloudPushTimer);
  _cloudPushTimer=setTimeout(()=>pushToCloud(true),1500);
 }
@@ -630,12 +649,13 @@ async function pushToCloud(silent){
  try{
   const nowIso=new Date().toISOString();
   const {error}=await client.from(SYNC_TABLE).upsert({id:cfg.syncId,payload:data,updated_at:nowIso});
-  if(error){if(!silent)toast('Erro ao sincronizar: '+error.message);return}
+  if(error){_syncError=error.message;updateSyncBadge();if(!silent)toast('Erro ao sincronizar: '+error.message);return}
+  _syncError=null;
   localStorage.setItem(SYNC_LAST_KEY,nowIso);
   localStorage.removeItem(SYNC_PENDING_KEY); // envio confirmado, não há mais nada pendente
   updateSyncStatusUI();
   if(!silent)toast('Enviado para a nuvem com sucesso');
- }catch(e){if(!silent)toast('Erro ao sincronizar: '+e.message)}
+ }catch(e){_syncError=e.message;updateSyncBadge();if(!silent)toast('Erro ao sincronizar: '+e.message)}
 }
 function flushPendingPushNow(){
  // usado ao minimizar/fechar o app: cancela o debounce de 1.5s e envia imediatamente
@@ -1016,16 +1036,19 @@ function waFollowUpMessage(companyName,contactName){
  const greeting=first?`Olá, ${first}!`:'Olá!';
  return `${greeting} Aqui é o Fábio, da Altarede | Grupo Avança Telecom.`;
 }
+function buildCompanyActivityCache(){
+ const map={};
+ const upd=(name,date)=>{if(!name||!date)return;if(!map[name]||date>map[name])map[name]=date;};
+ data.tasks.forEach(t=>upd(t.company,t.date));
+ data.proposals.forEach(p=>upd(p.company,p.date));
+ data.deals.forEach(d=>upd(d.company,d.next));
+ if(data.contactLog)Object.keys(data.contactLog).forEach(name=>upd(name,data.contactLog[name]));
+ return map;
+}
 function companyLastActivity(companyName){
  if(!companyName)return null;
- const dates=[];
- data.tasks.filter(t=>t.company===companyName).forEach(t=>{if(t.date)dates.push(t.date)});
- data.proposals.filter(p=>p.company===companyName).forEach(p=>{if(p.date)dates.push(p.date)});
- data.deals.filter(d=>d.company===companyName).forEach(d=>{if(d.next)dates.push(d.next)});
- if(data.contactLog && data.contactLog[companyName])dates.push(data.contactLog[companyName]);
- if(!dates.length)return null;
- dates.sort();
- return dates[dates.length-1];
+ if(!_companyActivityCache)_companyActivityCache=buildCompanyActivityCache();
+ return _companyActivityCache[companyName]||null;
 }
 function brDate(iso){if(!iso)return'';const[y,m,d]=iso.split('-');return d&&m&&y?`${d}/${m}/${y}`:iso}
 function companyFollowupInfo(company){
@@ -1358,6 +1381,13 @@ function renderDashboard(){
  <div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>Ranking por responsável ${ranking.length>1?'':'<span style="font-weight:400;color:#8a94a3;font-size:11.5px">(pronto para quando houver mais de um vendedor)</span>'}</h3></div>
   ${ranking.length?ranking.map(r=>`<div class="list-row"><div class="row-main"><b>${esc(r.owner)}</b><small>${r.count} fechamento(s)${closedDealsInPeriod.length?' no período':' (total)'}</small></div><b>${money(r.value)}</b></div>`).join(''):'<p style="color:#8a94a3;padding:6px 0">Nenhum fechamento registrado ainda.</p>'}
  </div>
+ <div class="card panel" style="margin-top:14px"><div class="panel-head"><h3>🤖 Automações de hoje</h3></div>
+  ${(()=>{
+   const todayLog=data.automationLog.filter(e=>e.date===today()).slice(-30).reverse();
+   if(!todayLog.length)return '<p style="color:#8a94a3;padding:6px 0">Nenhuma automação rodou hoje ainda — aparece aqui assim que o CRM criar alguma tarefa sozinho (mudança de etapa, proposta aprovada/recusada, etc.).</p>';
+   return todayLog.map(e=>`<div class="list-row"><div class="row-main"><small style="color:#8a94a3">${esc(e.time)}</small> ${esc(e.msg)}</div></div>`).join('');
+  })()}
+ </div>
  <div class="grid bottom" style="margin-top:14px">
   <div class="card panel insights"><div class="panel-head"><h3>Inteligência Comercial</h3><span class="link" onclick="showPage('inteligencia')">Ver todas</span></div>
    ${insight('🔴','Leads esquecidos (sem interação há mais de 15 dias)',data.companies.filter(c=>companyFollowupInfo(c).stale).length,'red')}${insight('!','Clientes sem contato há mais de 30 dias',data.companies.filter(c=>c.status==='Cliente').filter(c=>!data.tasks.some(t=>t.company===c.name&&t.date>=today())).length,'red')}${insight('◷','Propostas próximas do vencimento (7 dias)',data.proposals.filter(p=>{const d=new Date(p.date),n=new Date();const x=(d-n)/86400000;return x>=0&&x<=7&&p.status!=='Aprovada'&&p.status!=='Recusada'}).length,'orange')}${insight('$','Oportunidades de maior valor',money(Math.max(...data.deals.map(d=>d.value),0)),'green')}${insight('▣','Empresas sem follow-up agendado',data.companies.filter(c=>!data.tasks.some(t=>t.company===c.name&&t.status!=='Concluída')).length,'blue')}
@@ -1675,16 +1705,40 @@ function showDealDetails(id){
  document.getElementById('dealDetailModal').classList.add('open');
 }
 function closeDealDetails(){document.getElementById('dealDetailModal').classList.remove('open')}
+let _openContactMenuId=null;
+function toggleContactMenu(id,ev){
+ if(ev)ev.stopPropagation();
+ _openContactMenuId=(_openContactMenuId===id)?null:id;
+ document.querySelectorAll('.contact-menu').forEach(m=>{m.style.display=(Number(m.dataset.contactId)===_openContactMenuId)?'block':'none'});
+}
+document.addEventListener('click',()=>{if(_openContactMenuId!==null){_openContactMenuId=null;document.querySelectorAll('.contact-menu').forEach(m=>m.style.display='none')}});
+function contactCardHtml(c){
+ return `<div class="taskcard search-item" data-contact-id="${c.id}">
+  <div class="top">
+   <div class="main" style="flex:1;min-width:0;cursor:pointer" onclick="showContactDetails(${c.id})"><b>${esc(c.name)}</b><small>${esc(c.company)}${c.role?' · '+esc(c.role):''}</small></div>
+  </div>
+  <div style="font-size:12.5px;color:#667085;margin-top:6px">${c.cel?'📱 '+esc(c.cel):''}${c.cel&&c.tel?' · ':''}${c.tel?'☎️ '+esc(c.tel):''}${c.email?' · ✉️ '+esc(c.email):''}</div>
+  <div class="bottom-row">
+   <div class="chan-icons">${whatsappBtn(c.cel,'',c.company,c.name)} ${callBtn(c.cel,'📞','Ligar celular',c.company,c.name)} ${callBtn(c.tel,'☎️','Ligar fixo',c.company,c.name)}</div>
+   <div class="taskmenu-wrap">
+    <span class="icon-btn" onclick="toggleContactMenu(${c.id},event)">⋯</span>
+    <div class="taskmenu contact-menu" data-contact-id="${c.id}" style="display:none" onclick="event.stopPropagation()">
+     <button onclick="editItem('contact',${c.id})">✏️ Editar</button>
+     <button class="danger" onclick="del('contacts',${c.id})">🗑 Excluir</button>
+    </div>
+   </div>
+  </div>
+ </div>`;
+}
 function renderContacts(){
- const rows=data.contacts.map(c=>`<tr class="ftxt-${followupClsByCompanyName(c.company)}"><td><b><a href="#" onclick="event.preventDefault();showContactDetails(${c.id})" style="color:inherit;text-decoration:underline;text-decoration-color:#c7ccd4">${esc(c.name)}</a></b></td><td>${esc(c.company)}</td><td>${esc(c.role)}</td><td>${esc(c.cel)}</td><td>${esc(c.tel)}</td><td>${esc(c.email)}</td><td>${whatsappBtn(c.cel,null,c.company,c.name)} ${callBtn(c.cel,'📞','Ligar celular',c.company,c.name)} ${callBtn(c.tel,'☎️','Ligar fixo',c.company,c.name)} <button class="btn small" onclick="editItem('contact',${c.id})">Editar</button> <button class="btn small danger" onclick="del('contacts',${c.id})">Excluir</button></td></tr>`).join('');
- document.getElementById('contatos').innerHTML=tablePage('Contatos','Pessoas, decisores e responsáveis técnicos/comerciais',`<button class="btn primary" onclick="openForm('contact')">＋ Novo contato</button>`,`<div class="toolbar"><input id="contactsSearchInput" placeholder="Pesquisar contato..." oninput="filterContactsSearch(this.value)"></div><div class="card table-wrap"><table class="table" id="contactsTable" data-table-group="contatos"><thead><tr><th data-col="0">Nome</th><th data-col="1">Empresa</th><th data-col="2">Cargo</th><th data-col="3">Celular</th><th data-col="4">Telefone fixo</th><th data-col="5">E-mail</th><th data-col="6">Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+ const cards=data.contacts.map(contactCardHtml).join('')||'<p style="color:#8a94a3;padding:6px 0 4px;font-size:13px">Nenhum contato cadastrado ainda.</p>';
+ document.getElementById('contatos').innerHTML=tablePage('Contatos','Pessoas, decisores e responsáveis técnicos/comerciais',`<button class="btn primary" onclick="openForm('contact')">＋ Novo contato</button>`,`<div class="toolbar"><input id="contactsSearchInput" placeholder="Pesquisar contato..." oninput="filterContactsSearch(this.value)"></div>${cards}`);
  document.getElementById('contactsSearchInput').value=_pageFilters.contatos.search||'';
  applyContactsFilter();
- setupReorderableTables('contatos');
 }
 function applyContactsFilter(){
  const q=(_pageFilters.contatos.search||'').toLowerCase();
- document.querySelectorAll('#contactsTable tbody tr').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none');
+ document.querySelectorAll('#contatos .search-item').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none');
 }
 function filterContactsSearch(q){_pageFilters.contatos.search=q;applyContactsFilter()}
 function dealRowHtml(d){
@@ -2708,21 +2762,31 @@ function openForm(type,id=null,prefill=null){
  document.getElementById('modal').classList.add('open');
 }
 
+function logAutomation(msg){
+ if(!msg)return;
+ data.automationLog.push({date:today(),time:new Date().toTimeString().slice(0,5),msg:msg.replace(/^ · /,'')});
+ if(data.automationLog.length>300)data.automationLog=data.automationLog.slice(-300);
+}
 function scheduleNextStepForDeal(deal, oldStage, isNew){
- if(!deal || deal.stage==='Fechado') return;
+ if(!deal || deal.stage==='Fechado') return '';
  const offsets={'Primeiro Contato':2,'Qualificação':3,'Reunião':3,'Proposta':3,'Negociação':2};
  const titles={'Primeiro Contato':'Confirmar interesse','Qualificação':'Agendar reunião','Reunião':'Enviar proposta','Proposta':'Cobrar retorno da proposta','Negociação':'Fechar condições'};
  const days=offsets[deal.stage];
- if(!days) return;
- const exists=data.tasks.some(t=>t.dealId===deal.id && t.status!=='Concluída' && t.type==='Tarefa');
- if(exists) return;
+ if(!days) return '';
+ const exists=data.tasks.some(t=>t.dealId===deal.id && t.status!=='Concluída' && t.type==='Tarefa' && t.autoStage===deal.stage);
+ if(exists) return '';
  const d=new Date(); d.setDate(d.getDate()+days);
- data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),dealId:deal.id,title:(titles[deal.stage]||'Follow-up')+': '+deal.title,company:deal.company,date:d.toISOString().slice(0,10),time:'09:00',type:deal.stage==='Proposta'?'Ligação':'Tarefa',status:'Pendente'});
+ const newId=Date.now()+Math.floor(Math.random()*1000);
+ data.tasks.push({id:newId,dealId:deal.id,title:(titles[deal.stage]||'Follow-up')+': '+deal.title,company:deal.company,date:d.toISOString().slice(0,10),time:'09:00',type:deal.stage==='Proposta'?'Ligação':'Tarefa',status:'Pendente',autoStage:deal.stage});
+ const msg=' · tarefa automática criada: "'+(titles[deal.stage]||'Follow-up')+'" para '+fmtDateBR(d);
+ logAutomation('"'+deal.company+'": '+msg.replace(/^ · /,''));
+ return msg;
 }
 function createDealForProposal(proposal){
  if(!proposal||!proposal.company)return '';
  const nextId=Math.max(0,...data.deals.map(d=>d.id))+1;
  data.deals.push({id:nextId,company:proposal.company,title:'Proposta: '+(proposal.item||'sem descrição'),value:Number(proposal.value)||0,stage:'Proposta',prob:50,priority:'Média',next:proposal.date||today(),stageEnteredAt:today()});
+ logAutomation('"'+proposal.company+'": oportunidade criada na etapa "Proposta" a partir da proposta');
  return ' · oportunidade criada na etapa "Proposta" no Pipeline';
 }
 function syncDealForProposal(proposal){
@@ -2734,6 +2798,7 @@ function syncDealForProposal(proposal){
   if(currentIdx>=0&&currentIdx<proposalIdx){
    openDeal.stage='Proposta';
    openDeal.stageEnteredAt=today();
+   logAutomation('"'+proposal.company+'": oportunidade avançou para "Proposta" a partir da proposta');
    return ' · oportunidade avançou para "Proposta" no Pipeline';
   }
   return '';
@@ -2756,12 +2821,14 @@ function scheduleProposalReminder(proposal){
   return clamped?' · lembrete de cobrança reagendado para hoje':' · lembrete de cobrança reagendado para '+fmtDateBR(due);
  }
  data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),proposalId:proposal.id,title:'Cobrar retorno da proposta: '+(proposal.item||'sem descrição'),company:proposal.company,date:dateStr,time:'09:00',type:'Ligação',status:'Pendente'});
+ logAutomation('"'+proposal.company+'": lembrete de cobrança criado para '+fmtDateBR(new Date(dateStr+'T00:00:00')));
  return clamped?' · lembrete de cobrança criado para hoje (vencimento já está próximo/passado)':' · lembrete de cobrança criado para '+fmtDateBR(due)+' (2 dias antes do vencimento)';
 }
 function handleProposalAutomation(proposal,previousStatus){ if(!proposal)return;
  if(proposal.status==='Aprovada' && previousStatus!=='Aprovada'){
   data.tasks.filter(t=>t.proposalId===proposal.id&&t.status!=='Concluída').forEach(t=>t.status='Concluída');
   data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),title:'Fechamento/Onboarding: '+proposal.item,company:proposal.company,date:today(),time:'10:00',type:'Tarefa',status:'Pendente'});
+  logAutomation('"'+proposal.company+'": proposta aprovada — tarefa de fechamento/onboarding criada para hoje');
   toast('Proposta aprovada — tarefa de fechamento/onboarding criada automaticamente');
   return;
  }
@@ -2770,18 +2837,24 @@ function handleProposalAutomation(proposal,previousStatus){ if(!proposal)return;
   showConfirm('Proposta marcada como recusada. Criar uma tarefa de novo follow-up com essa empresa em 30 dias?',()=>{
    const next=new Date();next.setDate(next.getDate()+30);
    data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),title:'Novo follow-up após proposta recusada',company:proposal.company,date:next.toISOString().slice(0,10),time:'10:00',type:'Tarefa',status:'Pendente'});
+   logAutomation('"'+proposal.company+'": proposta recusada — follow-up criado para '+fmtDateBR(next));
    save();
    toast('Tarefa de follow-up criada para daqui a 30 dias');
   },'Criar follow-up');
  }
 }
 function handleDealAutomation(deal, previousStage, isNew){
- if(!deal)return;
+ if(!deal)return '';
  if(deal.stage==='Fechado'){
-   data.tasks.push({id:Date.now()+Math.floor(Math.random()*1000),dealId:deal.id,title:'Encaminhar implantação: '+deal.title,company:deal.company,date:today(),time:'10:00',type:'Tarefa',status:'Pendente'});
-   return;
+   const already=data.tasks.some(t=>t.dealId===deal.id && t.autoClosing && t.status!=='Concluída');
+   if(already)return '';
+   const newId=Date.now()+Math.floor(Math.random()*1000);
+   data.tasks.push({id:newId,dealId:deal.id,title:'Encaminhar implantação: '+deal.title,company:deal.company,date:today(),time:'10:00',type:'Tarefa',status:'Pendente',autoClosing:true});
+   const msg=' · tarefa automática criada: "Encaminhar implantação" para hoje';
+   logAutomation('"'+deal.company+'": '+msg.replace(/^ · /,''));
+   return msg;
  }
- scheduleNextStepForDeal(deal,previousStage,isNew);
+ return scheduleNextStepForDeal(deal,previousStage,isNew);
 }
 function completeTask(id){
  const t=data.tasks.find(x=>x.id===id);
@@ -2923,8 +2996,9 @@ function saveForm(type,collection,id){
      if(type==='deal' && old.stage!==obj.stage){
       if(obj.stage==='Fechado')arr[i].closedAt=today();
       arr[i].stageEnteredAt=today();
-      handleDealAutomation(arr[i],old.stage,false);
+      const autoMsg=handleDealAutomation(arr[i],old.stage,false);
       if(obj.stage==='Perdido'){save();closeModal();openLossReasonMenu(id);return}
+      extraMsg+=autoMsg;
      }
      if(type==='proposal' && old.status!==obj.status) handleProposalAutomation(arr[i],old.status);
      if(type==='proposal') extraMsg+=syncDealForProposal(arr[i]);
@@ -2934,7 +3008,7 @@ function saveForm(type,collection,id){
    obj.id=Date.now();
    if(type==='deal' && obj.stage==='Fechado')obj.closedAt=today();
    data[collection].push(obj);
-   if(type==='deal') handleDealAutomation(obj,null,true);
+   if(type==='deal') extraMsg+=handleDealAutomation(obj,null,true);
    if(type==='proposal') extraMsg+=createDealForProposal(obj);
    if(type==='proposal') extraMsg+=scheduleProposalReminder(obj);
  }
@@ -3102,10 +3176,8 @@ function dropDeal(e,stage){
   d.stage=stage;d.prob=stage==='Fechado'?100:stage==='Perdido'?0:d.prob;
   if(stage==='Fechado'&&!wasClosed)d.closedAt=today();
   if(stage!==prevStage)d.stageEnteredAt=today();
-  if(stage!==prevStage&&stage!=='Perdido')handleDealAutomation(d,prevStage,false);
-  save();
-  if(stage==='Perdido'){openLossReasonMenu(id)}
-  else toast('Oportunidade movida para '+stage);
+  if(stage!==prevStage&&stage!=='Perdido'){const autoMsg=handleDealAutomation(d,prevStage,false);save();if(stage!=='Perdido')toast('Oportunidade movida para '+stage+autoMsg);}
+  else{save();if(stage==='Perdido'){openLossReasonMenu(id)}else toast('Oportunidade movida para '+stage);}
  }
 }
 function filterTable(input,id){const q=input.value.toLowerCase();document.querySelectorAll('#'+id+' tbody tr').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none')}
@@ -3320,6 +3392,7 @@ const bb=document.getElementById('buildBadge');
 bb.textContent=APP_BUILD.split(' · ').slice(0,2).join(' · ');
 bb.title=APP_BUILD;
 renderAll();
+updateSyncBadge();
 initPipelinePan();
 if('serviceWorker' in navigator){
  window.addEventListener('load',()=>{
