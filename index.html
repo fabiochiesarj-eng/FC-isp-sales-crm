@@ -175,7 +175,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v16.14 · 2026-09-10 · O botão "✔ Contatada" (nas listas de leads sugeridos, tanto em Inteligência Comercial quanto em Tarefas) agora segue a mesma regra do módulo Tarefas: ao clicar, abre o mesmo card "O que aconteceu nessa tarefa?" — com campo de anotação e calendário pra marcar o próximo contato — em vez de só sumir a linha silenciosamente. O contato já fica registrado como concluído, e o próximo passo (ou "Não agendar") fica por sua conta, igual já funciona em qualquer tarefa';
+const APP_BUILD='v16.15 · 2026-09-10 · Ao concluir uma tarefa e escolher o próximo contato (card "O que aconteceu nessa tarefa?"), o CRM não abre mais sozinho o card da tarefa nova — agora fica na mesma página onde você estava (Tarefas, Agenda, Inteligência Comercial, dentro da ficha da Empresa, etc.), pra você seguir direto pro próximo contato. O toast de confirmação ganhou um atalho "Ver tarefa" pra quem quiser abrir a tarefa nova por vontade própria';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -2945,17 +2945,18 @@ function closeTaskResultModal(){
  save();
  document.getElementById('taskResultModal').classList.remove('open');
  _pendingTaskResultId=null;
- if(newId)showTaskDetails(newId);
+ if(newId)toast('Tarefa concluída · próximo contato agendado',{label:'Ver tarefa',onclick:`focusTask(${newId})`});
+ else toast('Tarefa concluída');
 }
 function saveTaskResult(){
  const t=data.tasks.find(x=>x.id===_pendingTaskResultId);
  if(t)t.resultado=document.getElementById('taskResultInput').value.trim();
  const newId=finalizeFollowUpChoice();
  save();
- toast('Resultado registrado'+(newId?' · próxima tarefa criada':''));
  document.getElementById('taskResultModal').classList.remove('open');
  _pendingTaskResultId=null;
- if(newId)showTaskDetails(newId);
+ if(newId)toast('Resultado registrado · próxima tarefa criada',{label:'Ver tarefa',onclick:`focusTask(${newId})`});
+ else toast('Resultado registrado');
 }
 function saveForm(type,collection,id){
  const defs={company:['name','cnpj','city','phone','address','email','segment','status','origin','leadScore','owner','notes'],contact:['name','company','role','cel','tel','email'],deal:['company','title','contact','value','stage','prob','priority','next','notes'],task:['title','company','contact','date','time','type','status','notes'],proposal:['company','item','value','date','status'],product:['name','category','price','active'],event:['title','company','date','time']};
