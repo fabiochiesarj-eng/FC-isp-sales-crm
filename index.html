@@ -175,7 +175,7 @@ async function disablePushNotifications(){
   renderConfig();
  }catch(e){toast('Erro ao desativar: '+e.message)}
 }
-const APP_BUILD='v16.17 · 2026-09-10 · Corrigido na raiz (vale para todos os módulos de uma vez): grupos recolhíveis (🔴🟡🟢⚪ em Empresas, Atrasadas/Hoje/Próximas/Concluídas em Tarefas, e a lista de "Leads sugeridos para esta semana" em Inteligência Comercial) fechavam sozinhos toda vez que a tela era atualizada depois de qualquer ação — por exemplo, fechar um lead sugerido fechava a própria lista de sugestões junto, forçando reabrir na mão pra continuar. Agora o sistema lembra quais grupos você deixou abertos e mantém assim entre as atualizações da tela, incluindo depois de usar a busca';
+const APP_BUILD='v16.18 · 2026-09-10 · Corrigido nos 6 cards de alerta da Inteligência Comercial (Clientes sem contato +30d, Clientes em risco, Oportunidades paradas, Propostas próximas do vencimento, Oportunidades de alto valor, Empresas sem próximo passo) e em qualquer outro card que abre lista de detalhes: usar WhatsApp/Ligar de dentro da lista atualizava os dados por trás, mas a lista continuava mostrando informação velha até fechar e abrir de novo. Agora a lista se atualiza sozinha a cada ação, sem nunca fechar — o card só fecha quando você mesmo fecha';
 const stages=['Lead','Primeiro Contato','Qualificação','Reunião','Proposta','Negociação','Fechado'];
 const dealStages=[...stages,'Perdido'];
 const RADAR_PROSPECCAO=[
@@ -1238,7 +1238,11 @@ function showPage(page){
 }
 document.addEventListener('click',e=>{if(!e.target.closest('#globalResults')&&!e.target.matches('.global-search'))document.getElementById('globalResults')?.classList.remove('show')});
 document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-page]');if(b){showPage(b.dataset.page);closeSidebar()}});
-function renderAll(){const active=document.querySelector('.section.active')?.id||'dashboard';renderPage(active);updateNotifyBadge()}
+function renderAll(){const active=document.querySelector('.section.active')?.id||'dashboard';renderPage(active);updateNotifyBadge();refreshOpenDashboardDetail()}
+let _dashboardDetailType=null;
+function refreshOpenDashboardDetail(){
+ if(_dashboardDetailType && document.getElementById('dashboardDetailModal')?.classList.contains('open'))openDashboardDetails(_dashboardDetailType);
+}
 function updateNotifyBadge(){
  const el=document.getElementById('notifyCount');if(!el)return;
  const overdueTasks=data.tasks.filter(t=>t.date<today()&&t.status!=='Concluída').length;
@@ -2406,6 +2410,7 @@ function saveConversionRate(){
 }
 
 function openDashboardDetails(type){
+  _dashboardDetailType=type;
   const modal=document.getElementById('dashboardDetailModal');
   const title=document.getElementById('dashboardDetailTitle');
   const body=document.getElementById('dashboardDetailBody');
@@ -2671,6 +2676,7 @@ function emptyDetail(msg){
 }
 function closeDashboardDetails(){
   document.getElementById('dashboardDetailModal').classList.remove('open');
+  _dashboardDetailType=null;
 }
 
 function quickTask(companyName){openForm('task',null,{company:companyName})}
